@@ -582,7 +582,7 @@ implicit none
 
 ! Local variables
 double precision:: qc(0:ny,0:nx,nz)
-integer:: iop(nq),j
+integer:: iop(nq),j,nqsave
 character(len=3):: pind
 
 !---------------------------------------------------------------
@@ -608,13 +608,15 @@ do j=1,nq
    ! iop = 0 for an open contour, and 1 for a closed one
 enddo
 
+nqsave=max(1,nq)
+
 open(81,file='cont/index'//pind,form='unformatted', &
-      access='direct',status='replace',recl=16*nq)
+      access='direct',status='replace',recl=16*nqsave)
 write(81,rec=1) npq(1:nq),i1q(1:nq),indq(1:nq),iop(1:nq)
 close(81)
 
 open(82,file='cont/nodes'//pind,form='unformatted', &
-      access='direct',status='replace',recl=16*nptq)
+      access='direct',status='replace',recl=16*nqsave)
 write(82,rec=1) xq(1:nptq),yq(1:nptq)
 close(82)
 
