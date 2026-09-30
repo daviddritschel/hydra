@@ -274,6 +274,9 @@ do iz=1,nz
    pp(:,:,iz)= pm !psi in physical space
 enddo
 
+ !Restore original PV in the bottom layer (iz = nz):
+if (bath) qq(:,:,nz)=qq(:,:,nz)+qb
+
 return
 end subroutine main_invert
 
