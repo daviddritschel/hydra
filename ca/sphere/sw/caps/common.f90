@@ -21,8 +21,11 @@ double precision:: uu(ng,nt),vv(ng,nt),hh(ng,nt)
  !Spectral prognostic fields:
 double precision:: qs(ng,nt),ds(ng,nt),gs(ng,nt)
 
- !Bottom topography at current time (if used):
-double precision:: bb(ng,nt)
+ !PV forcing (if used):
+double precision,allocatable,dimension(:,:):: fq
+
+ !Bottom topography and spectral fields needed in evolution (if used):
+double precision,allocatable,dimension(:,:):: bb,tsds,tsgs
 
  !Time and twist variable:
 double precision:: t,twist

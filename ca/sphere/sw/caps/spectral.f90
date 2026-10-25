@@ -51,7 +51,7 @@ double precision:: fsi1(ng,nt),fsi2(ng,nt)
 double precision:: tlat(ng),slat(ng),clat(ng),clati(ng)
 double precision:: cof(ng),bet(ng),fsq(ng),dfb(ng)
 
-! Weights for evolving the topographic forcing (if used):
+! Weights for evolving the PV forcing (if used):
 double precision:: wold,wnew
 
 contains
@@ -156,7 +156,7 @@ enddo
 rdis=dt2i+diss
 
 !-----------------------------------------------------------------
- !Topographic forcing (optional)
+ ! Initialise PV forcing (if present):
 
 if (forcing) then
    !Initialise normalisation for spherical harmonics.  In general,
@@ -186,7 +186,7 @@ if (forcing) then
   call init_forcing(norm)
 
    !Weights needed to have time-correlated forcing:
-  wold=one-dt/tb
+  wold=one-dt/tfq
   wnew=sqrt(one-wold**2)
 
 endif

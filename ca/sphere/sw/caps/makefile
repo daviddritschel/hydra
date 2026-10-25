@@ -5,10 +5,11 @@ installdir = ..
 
  # Set main source and object files:
 sources = $(sourcedir)/parameters.f90 $(sourcedir)/constants.f90 \
-          $(sourcedir)/spherical.f90 $(sourcedir)/force.f90 $(sourcedir)/spectral.f90 \
+          $(sourcedir)/spherical.f90 $(sourcedir)/force.f90 \
+	  $(sourcedir)/randomise.f90 $(sourcedir)/spectral.f90 \
           $(sourcedir)/contours.f90 $(sourcedir)/common.f90 $(sourcedir)/evolution.f90 #Main f90 sources
-objects = parameters.o constants.o spherical.o force.o spectral.o \
-          contours.o common.o evolution.o #Main .o files 
+objects = parameters.o constants.o spherical.o force.o randomise.o \
+          spectral.o contours.o common.o evolution.o #Main .o files 
 
  # Set location of fft library:
 fft_lib = ~/hydra/lib/stafft/stafft.f90 ~/hydra/lib/stafft/deriv1d.f90 
@@ -27,9 +28,6 @@ all: caps setup proxy_init_all proxy_post_all install
 
 caps: $(objects) $(fft_lib) $(sourcedir)/congen.f90 $(sourcedir)/caps.f90
 	$(f90) $(fft_lib) $(objects) $(sourcedir)/congen.f90 $(sourcedir)/caps.f90 -o caps $(flags)
-
-cont_caps: $(objects) $(fft_lib) $(sourcedir)/congen.f90 $(sourcedir)/cont_caps.f90
-	$(f90) $(fft_lib) $(objects) $(sourcedir)/congen.f90 $(sourcedir)/cont_caps.f90 -o cont_caps $(flags)
 
 $(objects): $(fft_lib) $(sources) 
 	$(f90) $(fft_lib) $(sources) -c $(flags)

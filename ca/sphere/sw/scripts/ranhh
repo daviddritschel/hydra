@@ -1,0 +1,60 @@
+#!/bin/csh
+
+#==========================================================================#
+# Job setup script for the random initial dimensionless height anomaly case
+#==========================================================================#
+
+echo
+echo ' For the initial spectrum of the dimensionless height anomaly field,'
+echo ' choose either'
+echo '    (1) narrow band, or'
+echo '    (2) broad band.'
+echo
+set iopt = "2"
+echo -n ' Choice (default' $iopt')? '
+set var = $<
+if ($var != "") set iopt = $var
+echo
+
+set kb = 8
+echo -n ' Central wavenumber, k_b (integer, default' $kb')? '
+set var = $<
+if ($var != "") set kb = $var
+echo
+
+echo ' ' >> job_info
+if ($iopt == "1") then
+   # Narrow band:
+   echo ' We consider a flat spectrum between n = n1 and n2.'
+   @ nbeg = ( $kb - 2 )
+   echo -n ' Starting order, n1 (default' $nbeg')? '
+   set var = $<
+   if ($var != "") set nbeg = $var
+   @ nend = ( $nbeg + 4 )
+   echo -n '  Ending  order, n2 (default' $nend')? '
+   set var = $<
+   if ($var != "") set nend = $var
+   echo ' Narrow-band initial height anomaly spectrum' >> job_info
+   echo ' between n = ' $nbeg ' and ' $nend >> job_info
+else
+   # Broad band:
+   echo ' We consider a spectrum S(n) = alpha*exp(-alpha) where'
+   echo ' alpha = (n/kb)^3 and n is the spherical harmonic order.'
+   set nbeg = 1
+   @ nend = ( 9 * ( $kb / 4 ) )
+   echo ' Broad-band initial height anomaly spectrum' >> job_info
+   echo ' S(n) = a*exp(-a) where a = (n/kb)^3 and kb = ' $kb >> job_info
+endif
+
+set hmax="0.4"
+echo -n ' Maximum absolute dimensionless height anomaly amplitude  (default' $hmax')? '
+set var=$<
+if ($var != "") set hmax=$var
+echo ' Maximum absolute amplitude of the dimensionless height anomaly: ' $hmax >> job_info
+
+cat << /EOF > in_ranhh
+$nbeg $nend
+$hmax
+/EOF
+
+ranhh < in_ranhh > out_ranhh

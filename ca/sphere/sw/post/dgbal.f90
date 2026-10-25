@@ -18,9 +18,10 @@ use spectral
 
 implicit none
 double precision:: hh(ng,nt),dd(ng,nt),gg(ng,nt),uu(ng,nt),vv(ng,nt)
-double precision:: qb(ng,nt),qq(ng,nt),zz(ng,nt),bb(ng,nt)
+double precision:: qb(ng,nt),qq(ng,nt),zz(ng,nt)
 double precision:: qs(ng,nt),ds(ng,nt),gs(ng,nt)
-double precision:: bs(ng,nt)
+ !Bottom topography and associated spectral fields (if used):
+double precision,allocatable,dimension(:,:):: bb,tsds,tsgs
 double precision:: ekin,epot,etot,angm,t,berro
 real:: qqr4(ng,nt),tr4
 integer:: iopt,loop,iread,nstep,i
@@ -38,20 +39,26 @@ write(*,*) ' Option?'
 read(*,*) iopt
 write(*,*)
 
+ !If fixed topography is present, allocate memory and read in its form:
+if (topogr) then
+  allocate(bb(ng,nt),tsds(ng,nt),tsgs(ng,nt))   
+  open(11,file='bb_init.r8',form='unformatted', &
+        access='direct',status='old',recl=2*nbytes)
+  read(11,rec=1) t,bb
+  close(11)
+  !Store its contribution to the gamma and delta tendencies:
+  tsgs=csq*bb
+  call forfft(ng,nt,tsgs,trig,factors)
+  call laplace(tsgs,tsds)
+  call revfft(ng,nt,tsds,trig,factors)
+endif
+
 if (iopt .eq. 0) then
    ! Only find balance at t = 0 to initialise:
   open(11,file='qq_init.r8',form='unformatted', &
         access='direct',status='old',recl=2*nbytes)
   read(11,rec=1) t,qb
   close(11)
-
-   ! If topographic forcing is present, read in initial state:
-  if (forcing) then
-    open(11,file='bb_init.r8',form='unformatted', &
-          access='direct',status='old',recl=2*nbytes)
-    read(11,rec=1) t,bb
-    close(11)
-  endif
   
    ! Define PV anomaly:
   do i=1,nt
@@ -97,12 +104,6 @@ else
   open(30,file='evolution/qq.r4',form='unformatted', &
         access='direct',status='old',recl=nbytes)
 
-  if (forcing) then
-     !Also read in the current toporaphic forcing:
-    open(40,file='evolution/bb.r4',form='unformatted', &
-          access='direct',status='old',recl=nbytes)
-  endif
-
   open(31,file='evolution/bqq.r4',form='unformatted', &
         access='direct',status='replace',recl=nbytes)
 
@@ -132,12 +133,6 @@ else
     qb=dble(qqr4)
     t=dble(tr4)
 
-    if (forcing) then
-       ! Read in current topographic forcing:
-      read(40,rec=loop) tr4,qqr4
-      bb=dble(qqr4)
-    endif
-    
      ! Define PV anomaly:
     do i=1,nt
       qb(:,i)=qb(:,i)-cof
@@ -160,7 +155,6 @@ else
   enddo
 
   close(30)
-  if (forcing) close(40)
   close(31)
   close(32)
   close(33)
@@ -401,25 +395,8 @@ wkp=uu**2+vv**2 ! *** Do not re-use wkp ***
 sds=two*(wka*(zz-wka)-wkb*(wkb+dd))-wkp-dd**2-wku*wkv-vv*wkc
  !wku = u/r on rhs above; *** wka & wkb now safe to re-use below ***
 
- !If Equivalent Barotropic, deal with nonlinear height term:
-if (eqbarot) then
-  bs=Rocpi*(one+hh)**Rocp-hh
-   !Add effect of topographic forcing if present:
-  if (forcing) bs=bs+bb
-  call forfft(ng,nt,bs,trig,factors) ! *** Do not re-use bs ***
-  call laplace(bs,wka)
-  call revfft(ng,nt,wka,trig,factors)
-  sds=sds-csq*wka
-else
-   !Standard SW case with R/c_p = 1; just add forcing if present:
-  if (forcing) then
-    bs=bb
-    call forfft(ng,nt,bs,trig,factors)
-    call laplace(bs,wka)
-    call revfft(ng,nt,wka,trig,factors)
-    sds=sds-csq*wka
-  endif
-endif
+ !Add effect of fixed topography (if present):
+if (topogr) sds=sds-tsds
 
  !Convert to semi-spectral space and de-alias:
 call dealias(sds)
@@ -443,8 +420,8 @@ call dealias(sgs)
 wkb=csq*hh+f12*wkp
  !De-alias and convert to semi-spectral space:
 call dealias(wkb)
- !Add effect of topographic forcing and/or eq. bt. nonlinearity if present:
-if (forcing .or. eqbarot) wkb=wkb+csq*bs
+ !Add effect of fixed topography (if present):
+if (topogr) wkb=wkb+tsgs
  !Calculate dB/d(lon) -> wkf (keep this semi-spectral):
 call deriv(ng,nt,rk,wkb,wkf)
 

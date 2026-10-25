@@ -106,7 +106,7 @@ im1 = ax.plot(x[ic],y[ic],'k-',lw=2)
 # Set plot title, legend and limits of the plot:
 ax.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
 ax.set_xlabel(labelx, fontsize=30)
-ax.set_ylabel('$\phi$', fontsize=30)
+ax.set_ylabel('$\\phi$', fontsize=30)
 ax.tick_params(length=10, width=3)
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
@@ -131,7 +131,7 @@ def on_press(event):
     # Set the title, legend and plot limits:
     axes.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
     axes.set_xlabel(labelx, fontsize=30)
-    axes.set_ylabel('$\phi$', fontsize=30)
+    axes.set_ylabel('$\\phi$', fontsize=30)
     axes.tick_params(length=10, width=3)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
@@ -152,7 +152,7 @@ def on_press(event):
     # Set the title, legend and plot limits:
     axes.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
     axes.set_xlabel(labelx, fontsize=30)
-    axes.set_ylabel('$\phi$', fontsize=30)
+    axes.set_ylabel('$\\phi$', fontsize=30)
     axes.tick_params(length=10, width=3)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)

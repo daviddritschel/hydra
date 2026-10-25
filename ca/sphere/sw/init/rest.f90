@@ -1,25 +1,26 @@
 program rest
 
 !=============================================================
-!  Sets up q = planetary vorticity, with topographic forcing
+!  Sets up PV = planetary vorticity
 !=============================================================
 
- !Import spectral module:
-use spectral
+ !Import constants are parameters:
+use constants
 
  !Declarations:
 implicit none
 
-double precision:: qq(ng,nt)
-integer:: i
+double precision:: qq(ng,nt),qp(ng)
+integer:: i,j
 
 !------------------------------------------------------------
- !Initialise spectral module:
-call init_spectral
-
  !Define PV for a rest state:
+do j=1,ng
+  qp(j)=fpole*sin((dble(j)-f12)*dl-hpi)
+enddo
+
 do i=1,nt
-  qq(:,i)=fpole*slat
+   qq(:,i)=qq(:,i)+qp
 enddo
 
  !Write initial PV field:
@@ -27,14 +28,5 @@ open(20,file='qq_init.r8',form='unformatted', &
       access='direct',status='replace',recl=2*nbytes)
 write(20,rec=1) zero,qq
 close(20)
-
- ! If topographic forcing is present, generate and save initial topography:
-if (forcing) then
-  call generate_forcing(qq,brms)
-  open(11,file='bb_init.r8',form='unformatted', &
-        access='direct',status='replace',recl=2*nbytes)
-  write(11,rec=1) zero,qq
-  close(11)
-endif
 
 end program rest

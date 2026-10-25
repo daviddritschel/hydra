@@ -1,0 +1,80 @@
+#!/bin/csh
+
+#=========================================================================#
+#       Job setup script for the random initial PV anomaly case
+#=========================================================================#
+
+echo
+echo ' For the initial spectrum of the PV anomaly field, choose either'
+echo '    (1) narrow band, or'
+echo '    (2) broad band.'
+echo
+set iopt = "2"
+echo -n ' Choice (default' $iopt')? '
+set var = $<
+if ($var != "") set iopt = $var
+echo
+
+set kb = 8
+echo -n ' Central wavenumber, k_b (integer, default' $kb')? '
+set var = $<
+if ($var != "") set kb = $var
+
+echo
+echo ' ' >> job_info
+if ($iopt == "1") then
+   # Narrow band:
+   echo ' We consider a flat spectrum between n = n1 and n2.'
+   @ nbeg = ( $kb - 2 )
+   echo -n ' Starting order, n1 (default' $nbeg')? '
+   set var = $<
+   if ($var != "") set nbeg = $var
+   @ nend = ( $nbeg + 4 )
+   echo -n '  Ending  order, n2 (default' $nend')? '
+   set var = $<
+   if ($var != "") set nend = $var
+   echo ' Narrow-band initial PV anomaly spectrum' >> job_info
+   echo ' between n = ' $nbeg ' and ' $nend >> job_info
+else
+   # Broad band:
+   echo ' We consider a spectrum S(n) = alpha*exp(-alpha) where'
+   echo ' alpha = (n/kb)^3 and n is the spherical harmonic order.'
+   set nbeg = 1
+   @ nend = ( 9 * ( $kb / 4 ) )
+   echo ' Broad-band initial PV anomaly spectrum' >> job_info
+   echo ' S(n) = a*exp(-a) where a = (n/kb)^3 and kb = ' $kb >> job_info
+endif
+
+set bopt = 3
+echo
+echo ' Choose from one of the following PV-based Rossby numbers (max):'
+echo '    (1) Ro = 0.25'
+echo '    (2) Ro = 0.5'
+echo '    (3) Ro = 0.75'
+echo -n '    (4) other  (default' $bopt')? '
+set var = $<
+if ($var != "") set bopt = $var
+
+set pi = 3.14159265358979
+set fpole = `echo "scale=10; 4 * $pi" | bc -l`
+
+if ($bopt == 1) then
+   set Ro = 0.25
+else if ($bopt == 2) then
+   set Ro = 0.5
+else if ($bopt == 3) then
+   set Ro = 0.75
+else if ($bopt == 4) then
+   echo -n ' Enter Ro: '
+   set Ro = $<
+endif
+
+echo ' Maximum absolute PV-based Rossby number: ' $Ro >> job_info
+
+set fmax = `echo "scale=10; $fpole * $Ro" | bc -l`
+cat << /EOF > in_ranpv
+$nbeg $nend
+$fmax
+/EOF
+
+ranpv < in_ranpv > out_ranpv

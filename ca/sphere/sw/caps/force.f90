@@ -106,7 +106,7 @@ end subroutine init_forcing
 !=========================================================================
 
 subroutine generate_forcing(ff, frms)
- !Generates a field ff with a narrow-band spectum and on a sphere.
+ !Generates a field ff from a superposition of spherical harmonics.
  !The r.m.s. value of ff is passed in frms 
 
 implicit none

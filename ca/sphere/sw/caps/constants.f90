@@ -64,9 +64,6 @@ double precision,parameter:: csq=cgw**2, csqi=one/csq
 double precision,parameter:: omega=fpole/two, dq=two*fpole/dble(ncont)
 double precision,parameter:: dqi=one/dq
 
-! 1/kappa = c_p/R and 1/(1 + kappa) (see parameters.f90):
-double precision,parameter:: Rocpi=one/Rocp, pefac=two/(one+Rocp)
-
 ! Total number of spherical harmonics needed for the forcing:
 integer,parameter:: ntot=nend+1-nbeg+(nend*(nend+1)-nbeg*(nbeg-1))/2
 
@@ -77,11 +74,8 @@ double precision,parameter:: dm=amu**2*ell/four, dm2=dm**2, dmsq=four*dm2
 double precision,parameter:: dmi=two/dm, d4small=small*dl**4
 
  !Logicals:
-logical,parameter:: eqbarot=(Rocp .lt. 0.99999d0)
- !Rocp = R/c_p =  1  for traditional SW case;
- !Rocp = R/c_p = 2/7 typically for the equivalent barotropic case
-logical,parameter:: forcing=(tb .ge. zero)
-logical,parameter:: thermal=(rth .gt. zero)
-logical,parameter:: friction=(rek .gt. zero)
+logical,parameter:: forcing=(fqrms > zero)
+logical,parameter:: thermal=(rth > zero)
+logical,parameter:: friction=(rek > zero)
 
 end module

@@ -5,14 +5,14 @@
 
 !      Code redeveloped in June 2020 by D G Dritschel @ St Andrews.
 !      Revised 11 February 2021 by dgd.
-!      Equivalent Barotropic formulation added 6 January 2022 by dgd.
+!      Forcing changed to PV forcing on 22 October 2026 by dgd.
 
-!      This code simulates the unforced Shallow-Water Equations (SWE)
-!      or Equivalent Barotropic Equations (EBE), with R/c_p < 1,
-!      in variables (q,delta,gamma), where q is the potential vorticity,
+!      This code simulates the Shallow-Water Equations (SWE) in variables
+!      (q,delta,gamma), where q is the potential vorticity,
 !      delta is the velocity divergence, and gamma is the acceleration 
-!      divergence (called ageostrophic vorticity).  Note, we keep the
-!      same definition of gamma in both the SWE and EBE.
+!      divergence (called ageostrophic vorticity).
+
+!      The PV can be forced randomly using a Markovian process.
 
 !      Contour advection and generation are done internally now.  For
 !      details of the method, see Dritschel & Fontane, J. Comput. Phys.
@@ -86,12 +86,24 @@ call init_spectral
  !Initialise constants and arrays for contour advection:
 call init_contours
 
- !If topographic forcing is present, read in initial state:
+ !If PV forcing is present, allocate memory and generate its initial form:
 if (forcing) then
+  allocate(fq(ng,nt))
+  call generate_forcing(fq,fqrms)
+endif
+
+ !If fixed topography is present, allocate memory and read in its form:
+if (topogr) then
+  allocate(bb(ng,nt),tsds(ng,nt),tsgs(ng,nt))   
   open(11,file='bb_init.r8',form='unformatted', &
         access='direct',status='old',recl=2*nbytes)
   read(11,rec=1) t,bb
   close(11)
+  !Store its contribution to the gamma and delta tendencies:
+  tsgs=csq*bb
+  call forfft(ng,nt,tsgs,trig,factors)
+  call laplace(tsgs,tsds)
+  call revfft(ng,nt,tsds,trig,factors)
 endif
 
 !----------------------------------------------------------------------
@@ -178,11 +190,6 @@ open(34,file='evolution/hh.r4',form='unformatted',access='direct', &
                              status='replace',recl=nbytes)
 open(35,file='evolution/zz.r4',form='unformatted',access='direct', &
                              status='replace',recl=nbytes)
-if (forcing) then
-   !Save topographic forcing for use in post-processing (e.g. dgbal):
-  open(36,file='evolution/bb.r4',form='unformatted',access='direct', &
-        status='replace',recl=nbytes)
-endif
 
  !Open files for 1d longitudinal spectra (averaged over cos(latitude)):
 open(51,file='spectra/zspec.asc',status='replace')
@@ -251,7 +258,6 @@ close(32)
 close(33)
 close(34)
 close(35)
-if (forcing) close(36)
 close(51)
 close(52)
 close(53)

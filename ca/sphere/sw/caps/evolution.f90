@@ -288,8 +288,9 @@ call simp(gs,sgs,ds)   ! ds is not used
 ds=sgs-dsi
 gs=rdis*sgs-sds-gsi
 
- !If there is topographic forcing, update the topography for t+dt:
-if (forcing) call topography
+ !If there is PV forcing (fq), update its form:
+if (forcing) call pvforce
+ !Note: the forcing stays constant in time within a time step.
 
 !------------------------------------------------------------------
  !Iterate to improve estimates of F^{n+1}:
@@ -362,7 +363,7 @@ double precision:: sqs(ng,nt),sqd(ng,nt),sds(ng,nt),sgs(ng,nt)
 double precision:: wka(ng,nt),wkb(ng,nt),wkc(ng,nt),wkd(ng,nt)
 double precision:: wke(ng,nt),wkf(ng,nt),wkp(ng,nt),wkq(ng,nt)
 double precision:: wku(ng,nt),wkv(ng,nt)
-double precision:: bs(ng,nt),dd(ng,nt),rhs(ng),avgval
+double precision:: dd(ng,nt),rhs(ng),avgval
 integer:: i
 
 !---------------------------------------------------------------
@@ -375,6 +376,8 @@ call latder(wka,wkq)                ! wkq = d(qd)/d(lat)
 do i=1,nt
   sqd(:,i)=-uu(:,i)*clati*wkp(:,i)-vv(:,i)*wkq(:,i)
 enddo
+ !Add PV forcing (fq) if present:
+if (forcing) sqd=sqd+fq
  !Add non-conservative term associated with thermal damping if present:
 if (thermal) sqd=sqd+rth*qq*(one-one/(one+hh))
  !Convert to semi-spectral space and de-alias:
@@ -442,25 +445,8 @@ wkp=uu**2+vv**2 ! *** Do not re-use wkp ***
 sds=two*(wka*(zz-wka)-wkb*(wkb+dd))-wkp-dd**2-wku*wkv-vv*wkc
  !wku = u/r on rhs above; *** wka & wkb now safe to re-use below ***
 
- !If Equivalent Barotropic, deal with nonlinear height term:
-if (eqbarot) then
-  bs=Rocpi*(one+hh)**Rocp-hh
-   !Add effect of topographic forcing if present:
-  if (forcing) bs=bs+bb
-  call forfft(ng,nt,bs,trig,factors) ! *** Do not re-use bs ***
-  call laplace(bs,wka)
-  call revfft(ng,nt,wka,trig,factors)
-  sds=sds-csq*wka
-else
-   !Standard SW case with R/c_p = 1; just add forcing if present:
-  if (forcing) then
-    bs=bb
-    call forfft(ng,nt,bs,trig,factors)
-    call laplace(bs,wka)
-    call revfft(ng,nt,wka,trig,factors)
-    sds=sds-csq*wka
-  endif
-endif
+ !Add effect of fixed topography (if present):
+if (topogr) sds=sds-tsds
 
  !Convert to semi-spectral space and de-alias:
 call dealias(sds)
@@ -484,8 +470,8 @@ call dealias(sgs)
 wkb=csq*hh+f12*wkp
  !De-alias and convert to semi-spectral space:
 call dealias(wkb)
- !Add effect of topographic forcing and/or eq. bt. nonlinearity if present:
-if (forcing .or. eqbarot) wkb=wkb+csq*bs
+ !Add effect of fixed topography (if present):
+if (topogr) wkb=wkb+tsgs
  !Calculate dB/d(lon) -> wkf (keep this semi-spectral):
 call deriv(ng,nt,rk,wkb,wkf)
 
@@ -592,9 +578,9 @@ end subroutine reset
 
 !=======================================================================
 
-subroutine topography
-! Updates the topography by blending a new random field into the
-! existing topography in bb.
+subroutine pvforce
+! Updates the PV forcing by blending a new random field into the
+! existing one in fq.
 
 implicit none
 
@@ -604,19 +590,19 @@ double precision:: fac
 
 !-------------------------------------------------------------------
  !Generate forcing at t+dt:
-call generate_forcing(wkb,brms)
+call generate_forcing(wkb,fqrms)
 
  !Blend with existing forcing (Markovian process):
-bb=wold*bb+wnew*wkb
+fq=wold*fq+wnew*wkb
  !See constants.f90 for wold and wnew
 
  !Restore rms value of blended field:
-call getrms(bb,fac)
-fac=brms/fac
-bb=fac*bb
+call getrms(fq,fac)
+fac=fqrms/fac
+fq=fac*fq
 
 return
-end subroutine topography
+end subroutine pvforce
 
 !=======================================================================
 
@@ -676,13 +662,9 @@ wkp=htot*(uu**2+vv**2)
 ekin=twopi*average(wkp)
 
  !Compute potential energy:
-if (eqbarot) then
-  wkp=htot*(htot**Rocp-one)*pefac  !Rocp = kappa;  pefac = 2/(1 + kappa)
-else
-  wkp=hh**2
-endif
- !Add effect of topographic forcing if any:
-if (forcing) wkp=wkp+two*bb*hh
+wkp=hh**2
+ !Add effect of topography if any:
+if (topogr) wkp=wkp+two*bb*hh
 epot=twopi*csq*average(wkp)
 
  !Total energy:
@@ -744,8 +726,6 @@ call revfft(ng,nt,wkp,trig,factors)
 write(33,rec=igrids) real(t),real(wkp)
 write(34,rec=igrids) real(t),real(hh)
 write(35,rec=igrids) real(t),real(zz)
- !If present, save topographic forcing for post-processing:
-if (forcing) write(36,rec=igrids) real(t),real(bb)
 
 return
 end subroutine savegrid

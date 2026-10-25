@@ -45,7 +45,7 @@ mpl.rcParams['axes.linewidth'] = 3
 fig, (ax1, ax2) = plt.subplots(figsize=[12.1,6.0], nrows=1, ncols=2)
 
 ax1.set_xlabel('$\\bar{u}/\\bar{u}_{\\mathsf{rms}}$,~ $\\bar{h}/\\bar{h}_{\\mathsf{rms}}$', fontsize=30)
-ax1.set_ylabel('$\phi$', fontsize=30)
+ax1.set_ylabel('$\\phi$', fontsize=30)
 ax1.set_ylim(-np.pi/2.0,np.pi/2.0)
 ax1.axvline(0.0,color='b',ls='--',lw=1)
 ax1.xaxis.set_ticks([-5,-4,-3,-2,-1,0,1,2,3,4,5])
@@ -53,7 +53,7 @@ ax1.yaxis.set_ticks([-np.pi/2.0,-np.pi/4.0,0.0,np.pi/4.0,np.pi/2.0])
 ax1.set_yticklabels([r'$-\pi/2$',r'$-\pi/4$',r'$0$',r'$\pi/4$',r'$\pi/2$'],fontsize=20)
 
 ax2.set_xlabel('$\\bar{u}/\\bar{u}_{\\mathsf{rms}}$,~ $\\bar{h}/\\bar{h}_{\\mathsf{rms}}$', fontsize=30)
-#ax2.set_ylabel('$\phi$', fontsize=30)
+#ax2.set_ylabel('$\\phi$', fontsize=30)
 ax2.set_ylim(-np.pi/2.0,np.pi/2.0)
 ax2.axvline(0.0,color='b',ls='--',lw=1)
 ax2.xaxis.set_ticks([-5,-4,-3,-2,-1,0,1,2,3,4,5])

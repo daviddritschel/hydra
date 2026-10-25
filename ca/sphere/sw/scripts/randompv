@@ -1,8 +1,0 @@
-#!/bin/csh
-
-#=========================================================================#
-#       Job setup script for the random initial PV anomaly case
-#=========================================================================#
-set datagen = "randompv"
-
-$datagen > out_$datagen
