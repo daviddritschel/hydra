@@ -420,6 +420,10 @@ call jacob(u1,v1,wkp)
 call ptospc(ng,ng,wkp,wkq,xfactors,yfactors,xtrig,ytrig)
 ! wkq contains J(u_1,v_1) in spectral space
 sds1=two*wkq-sds1
+if (topogr) then
+   ! Add topographic contribution, -c_1^2*k^2*bt (spectral; see caps.f90):
+   sds1=sds1+tsds
+endif
 ! sds1 is now the full nonlinear ds source in layer 1
 sds1(1,1)=zero ! ensures zero domain average
 
@@ -434,6 +438,10 @@ call jacob(u2,v2,wkp)
 call ptospc(ng,ng,wkp,wkq,xfactors,yfactors,xtrig,ytrig)
 ! wkq contains J(u_2,v_2) in spectral space
 sds2=two*wkq-sds2
+if (topogr) then
+   ! Add topographic contribution, -c_1^2*k^2*bt (spectral; see caps.f90):
+   sds2=sds2+tsds
+endif
 ! sds2 is now the full nonlinear ds source in layer 2
 sds2(1,1)=zero ! ensures zero domain average
 
@@ -580,8 +588,14 @@ ekih=ekmf*sum(wka*(u1**2+v1**2)+alpha*wkb*(u2**2+v2**2))
 ekiv=zero
 
 ! Potential energy:
-epot=epmf*sum(wka**2+alpha*wkb*(two*wka+wkb)-dape)
+if (topogr) then
+   wkp=hbar1*bt ! Restore dimensions of bottom topography
+   epot=epmf*sum(wka*(two*wkp+wka)+alpha*wkb*(two*(wkp+wka)+wkb)-dape)
+else
+   epot=epmf*sum(wka**2+alpha*wkb*(two*wka+wkb)-dape)
+endif
 ! epmf = g*ekmf (see constants.f90)
+! dape: definition given in constants.f90
 
 ! Total energy:
 etot=ekih+epot+ekiv

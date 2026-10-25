@@ -6,9 +6,17 @@
 !  Code developed in summer 2020 by D G Dritschel & M R Jalali @ St Andrews
 
 !       This code simulates the unforced Shallow-Water (SW) equations
-!       in variables (q,delta,gamma), where q is the potential vorticity,
-!       delta is the velocity divergence, and gamma is the acceleration
-!       divergence f*zeta-g*lap(h).
+!       in variables (q_j,delta_j,gamma_j) for each layer j (with j = 1
+!       being the lowest layer), where q_j = (zeta_j+f)/(1+h_j) - f
+!       is the potential vorticity anomaly, zeta_j is the relative
+!       vorticity, h_j is the dimensionless depth anomaly (h^*_j-H_j)/H_j
+!       with h^*_j being the actual thickness of layer j (with zero mean)
+!       and H_j being the mean thickness, delta_j = div({u_j,v_j}) is
+!       the velocity divergence, and gamma_j is the acceleration
+!       divergence - excluding any possible topographic contribution.
+
+!       Bottom topography, bt (if included), is made dimensionless on
+!       the lower-layer mean thickness, H_1.
 
 !       Contour advection and generation are done internally now.  For
 !       details of the method, see Dritschel & Fontane, J. Comput. Phys.
@@ -77,6 +85,20 @@ implicit none
 call init_spectral
  !Initialise constants and arrays for contour advection:
 call init_contours
+
+!----------------------------------------------------------------------
+ !Read in the bottom topography (height of the bottom surface):
+if (topogr) then
+  open(11,file='bt_init.r8',form='unformatted', &
+        access='direct',status='old',recl=2*nbytes)
+  read(11,rec=1) t,bt
+  close(11)
+   !Convert to spectral space to take Laplacian:
+  z1=bt
+  call ptospc(ng,ng,z1,tsds,xfactors,yfactors,xtrig,ytrig)
+  tsds=csq1*rksq*tsds
+   !tsds = c_1^2*k^2*bt in spectral space (fixed here).
+endif
 
 !----------------------------------------------------------------------
  !Read in gridded PV anomaly and convert to spectral space as qs1,2:

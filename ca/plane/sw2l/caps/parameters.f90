@@ -30,6 +30,8 @@ double precision,parameter:: cdamp=C_DAMP, nnu=POW_HYPER
 ! cof    : Constant Coriolis frequency
 ! cgw    : Short-scale gravity wave speed, sqrt(g*(H_1+H_2))
 ! cdamp  : This times f is the damping rate on wavenumber ng/2
+
+logical,parameter:: topogr=TOPO_FLAG
 !----------------------------------------------------------------
 
 end module parameters

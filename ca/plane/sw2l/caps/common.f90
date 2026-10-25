@@ -16,6 +16,11 @@ double precision:: q1(ng,ng),z1(ng,ng)
 double precision:: q2(ng,ng),z2(ng,ng)
 double precision:: qr(ng,ng,nz)
 
+ !Topography scaled by lower-layer depth (if present):
+double precision:: bt(ng,ng)
+ !Constant divergence source term -c_1^2*Lap(bt) in spectral space:
+double precision:: tsds(ng,ng)
+
  !Velocity field and dimensionless height anomaly in physical space:
 double precision:: u1(ng,ng),v1(ng,ng),h1(ng,ng)
 double precision:: u2(ng,ng),v2(ng,ng),h2(ng,ng)
