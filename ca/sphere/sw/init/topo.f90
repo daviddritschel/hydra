@@ -2,6 +2,7 @@ program topo
 
 !=============================================================
 !  Sets up a random bottom topography field
+!  using a function in module randomise.f90
 !=============================================================
 
 !Import necessary modules:

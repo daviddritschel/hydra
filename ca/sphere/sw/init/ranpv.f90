@@ -1,8 +1,8 @@
 program ranpv
 
 !=====================================================
-! Sets up a random PV anomaly field using the forcing
-! function in module force.f90.
+! Sets up a random PV anomaly field
+! using a function in module randomise.f90
 !=====================================================
 
  !Import necessary modules:

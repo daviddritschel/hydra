@@ -20,7 +20,7 @@ do j=1,ng
 enddo
 
 do i=1,nt
-   qq(:,i)=qq(:,i)+qp
+   qq(:,i)=qp
 enddo
 
  !Write initial PV field:

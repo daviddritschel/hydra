@@ -2,7 +2,7 @@ program ranhh
 
 !=====================================================
 ! Sets up a random dimensionless height anomaly field
-! using the forcing function in module force.f90.
+! using a function in module randomise.f90
 
 ! Both zeta and delta = 0; gamma is obtained after by
 ! a call to inigamma. See flow-setup script.  
