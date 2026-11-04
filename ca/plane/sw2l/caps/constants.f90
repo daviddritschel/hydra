@@ -26,7 +26,7 @@ integer,parameter:: nlevm=2000
  !nlevm: up to 2*nlevm contour levels are allowed (very generous)
 
  !Maximum number of contour nodes:
-integer,parameter:: npm=400*ng*ng
+integer,parameter:: npm=625*ng*ng
  !Maximum number of contours:
 integer,parameter:: nm=npm/20+npm/200
  !Maximum number of nodes on any single contour:
@@ -51,14 +51,16 @@ double precision,parameter:: garea=gl*gl,dsumi=one/dble(ng*ng)
 double precision,parameter:: dt2=dt*f12,dt4=dt*f14
 double precision,parameter:: dt2i=one/dt2,dt4i=one/dt4
 
+! Coriolis frequency (so that 1 unit of time corresponds to 1 "day"):
+double precision,parameter:: cof=four*pi
+
 ! Squared gravity wave speeds in each layer:
-double precision,parameter:: csq=cgw**2,hbar=hbar1+hbar2,gravity=csq/hbar
 double precision,parameter:: csq1=gravity*hbar1,csq2=gravity*hbar2
 double precision,parameter:: dape=hbar1**2+alpha*hbar2*(two*hbar1+hbar2)
-double precision,parameter:: ekmf=f12*garea/hbar,epmf=gravity*ekmf
+double precision,parameter:: ekmf=f12*garea,epmf=gravity*ekmf
 
 ! !Mean layer depth & mass ratio, and related constants:
 double precision,parameter:: hrat=hbar2/hbar1,mubar=alpha*hrat
 double precision,parameter:: wmass=one/(one+mubar),cio=wmass*dsumi
 
-end module
+end module constants

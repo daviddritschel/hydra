@@ -108,7 +108,7 @@ do ix=1,ngu
 enddo
 
 return
-end subroutine
+end subroutine init_contours
 
 !=======================================================================
       
@@ -151,7 +151,7 @@ do iz=1,nz
 enddo
 
 return
-end subroutine
+end subroutine velint
 
 !=======================================================================
 
@@ -306,7 +306,7 @@ enddo
  !Ends the major loop over layers
 
 return
-end subroutine
+end subroutine con2grid
 
 !=======================================================================
 
@@ -683,7 +683,7 @@ do j=1,nq
 enddo
 
 return
-end subroutine
+end subroutine surgery
 
 !==========================================================================
 
@@ -936,9 +936,9 @@ else
 endif
 
 return
-end subroutine
+end subroutine renode
 
 !=======================================================================
 
  !Main end module
-end module
+end module contours

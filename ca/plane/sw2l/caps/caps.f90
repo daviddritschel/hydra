@@ -36,7 +36,7 @@
 !       evolution.f90 : Main time evolution module - advects gridded 
 !                       fields using a PS method along with contours.
 !----------------------------------------------------------------------------
-program casl
+program caps
 
 use common
 
@@ -193,30 +193,30 @@ open(54,file='spectra/hspec.asc',status='replace')
 
  !Open files for coarse grid saves:
 open(31,file='evolution/q1.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(41,file='evolution/q2.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(32,file='evolution/d1.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(42,file='evolution/d2.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(33,file='evolution/g1.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(43,file='evolution/g2.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(34,file='evolution/h1.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(44,file='evolution/h2.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(35,file='evolution/z1.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 open(45,file='evolution/z2.r4',form='unformatted',access='direct', &
-                   status='replace',recl=nbytes)
+      status='replace',recl=nbytes)
 
  !Open files for contour writes:
-open(80,file='cont/qqsynopsis.asc',status='replace')
-open(83,file='cont/qqresi.r4',form='unformatted',access='direct', &
-                            status='replace',recl=nbytes)
+open(80,file='contours/qqsynopsis.asc',status='replace')
+open(83,file='contours/qqresi.r4',form='unformatted',access='direct', &
+      status='replace',recl=nbytes)
 
  !Define number of time steps between grid and contour saves:
 ngsave=nint(tgsave/dt)
@@ -224,7 +224,7 @@ ncsave=nint(tcsave/dt)
  !*** WARNING: tgsave and tcsave should be an integer multiple of dt
 
 return
-end subroutine
+end subroutine initialise
 
 !=======================================================================
 
@@ -234,12 +234,12 @@ use evolution
 
 implicit none
 
- !Advect PV until next recontouring or end:
+ !Advect PV and all fields until next recontouring or end:
 write(*,*) 'Evolving contours and fields ...'
 call advect
 
 return 
-end subroutine
+end subroutine evolve
 
 !=======================================================================
 
@@ -255,7 +255,7 @@ call recontour(qr)
 write(*,'(a,i8,a,i9)') '   nq = ',nq,'   nptq = ',nptq
 
 return 
-end subroutine
+end subroutine recont
 
 !=======================================================================
 
@@ -288,8 +288,8 @@ close(80)
 close(83)
 
 return
-end subroutine
+end subroutine finalise
 
  !End main program
-end program
+end program caps
 !=======================================================================

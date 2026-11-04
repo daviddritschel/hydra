@@ -4,8 +4,9 @@ sourcedir = .
 installdir = ..
 
  # Set main source and object files:
-sources = $(sourcedir)/parameters.f90 $(sourcedir)/constants.f90 $(sourcedir)/spectral.f90 \
-          $(sourcedir)/contours.f90 $(sourcedir)/common.f90 $(sourcedir)/evolution.f90 #Main f90 sources
+sources = $(sourcedir)/parameters.f90 $(sourcedir)/constants.f90 \
+          $(sourcedir)/spectral.f90   $(sourcedir)/contours.f90  \
+          $(sourcedir)/common.f90 $(sourcedir)/evolution.f90 #Main f90 sources
 objects = parameters.o constants.o spectral.o \
           contours.o common.o evolution.o #Main .o files 
 
@@ -27,12 +28,6 @@ all: caps setup proxy_init_all proxy_post_all install
 caps: $(objects) $(fft_lib) $(sourcedir)/congen.f90 $(sourcedir)/caps.f90
 	$(f90) $(fft_lib) $(objects) $(sourcedir)/congen.f90 $(sourcedir)/caps.f90 -o caps $(flags)
 
-ptest: $(objects) $(fft_lib) $(sourcedir)/ptest.f90
-	$(f90) $(fft_lib) parameters.o constants.o spectral.o $(sourcedir)/ptest.f90 -o ptest $(flags)
-
-old_ptest: $(objects) $(fft_lib) $(sourcedir)/old_ptest.f90
-	$(f90) $(fft_lib) parameters.o constants.o spectral.o $(sourcedir)/old_ptest.f90 -o old_ptest $(flags)
-
 $(objects): $(fft_lib) $(sources) 
 	$(f90) $(fft_lib) $(sources) -c $(flags)
 
@@ -40,7 +35,9 @@ $(objects): $(fft_lib) $(sources)
 clean:
 	rm -f *.o *.mod
 setup:
-	test -d $(installdir)/cont || mkdir $(installdir)/cont
+	test -d $(installdir)/evolution || mkdir $(installdir)/evolution
+	test -d $(installdir)/spectra || mkdir $(installdir)/spectra
+	test -d $(installdir)/contours || mkdir $(installdir)/contours
 	test -d $(installdir)/fine || mkdir $(installdir)/fine
 
 install:
@@ -66,4 +63,3 @@ else
 proxy_post_all:
 	 @echo No post directory found 
 endif
-

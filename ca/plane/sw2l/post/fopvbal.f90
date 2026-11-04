@@ -28,6 +28,7 @@ double precision:: h2(ng,ng),d2(ng,ng),g2(ng,ng),q2(ng,ng)
 double precision:: u2(ng,ng),v2(ng,ng),z2(ng,ng)
 double precision:: qb1(ng,ng),qs1(ng,ng),ds1(ng,ng),gs1(ng,ng)
 double precision:: qb2(ng,ng),qs2(ng,ng),ds2(ng,ng),gs2(ng,ng)
+double precision:: bt(ng,ng),tsds(ng,ng)
 double precision:: ekih,ekiv,epot,etot,t,tramp
 real:: qr4(ng,ng),tr4
 integer:: iopt,loop,iread,nstep
@@ -36,6 +37,22 @@ integer:: iopt,loop,iread,nstep
  !Initialise inversion constants and arrays:
 call init_spectral
 
+!----------------------------------------------------------------------
+ !Read in the bottom topography (height of the bottom surface):
+if (topogr) then
+  open(11,file='bt_init.r8',form='unformatted', &
+        access='direct',status='old',recl=2*nbytes)
+  read(11,rec=1) t,bt
+  close(11)
+  z1=bt
+   !z1 stores the bottom topography (bt), only temporarily;
+   !convert to spectral space to take Laplacian:
+  call ptospc(ng,ng,z1,tsds,xfactors,yfactors,xtrig,ytrig)
+  tsds=csq1*rksq*tsds
+   !tsds = c_1^2*k^2*bt in spectral space (needed for gs1 & gs2 below)
+endif
+
+!----------------------------------------------------------------------
 write(*,*) ' Choose one of the following options:'
 write(*,*)
 write(*,*) ' (0) initialise from data in qq_init.r8'
@@ -198,7 +215,7 @@ subroutine balance
 implicit none
 
  !Local variables:
-double precision:: wka(ng,ng),wkb(ng,ng)
+double precision:: wka(ng,ng),wkb(ng,ng),wkp(ng,ng)
 integer:: istep
 
 !-----------------------------------------------------------------
@@ -236,11 +253,16 @@ wkb=hbar2*(one+h2)
 
 ! Horizontal and vertical parts of the kinetic energy:
 ekih=ekmf*sum(wka*(u1**2+v1**2)+alpha*wkb*(u2**2+v2**2))
-! ekmf = 0.5*glx*gly/(hbar_1+hbar_2)
+! ekmf = 0.5*glx*gly
 ekiv=zero
 
 ! Potential energy:
-epot=epmf*sum(wka**2+alpha*wkb*(two*wka+wkb)-dape)
+if (topogr) then
+   wkp=hbar1*bt ! Restore dimensions of bottom topography
+   epot=epmf*sum(wka*(two*wkp+wka)+alpha*wkb*(two*(wkp+wka)+wkb)-dape)
+else
+   epot=epmf*sum(wka**2+alpha*wkb*(two*wka+wkb)-dape)
+endif
 ! epmf = g*ekmf (see constants.f90)
 
 ! Total energy:
@@ -392,6 +414,10 @@ call jacob(u1,v1,wkp)
 call ptospc(ng,ng,wkp,wkq,xfactors,yfactors,xtrig,ytrig)
 ! wkq contains J(u_1,v_1) in spectral space
 sds1=two*wkq-sds1
+if (topogr) then
+   ! Add topographic contribution, -c_1^2*k^2*bt (spectral; see caps.f90):
+   sds1=sds1+tsds
+endif
 ! sds1 is now the full nonlinear ds source in layer 1
 sds1(1,1)=zero ! ensures zero domain average
 
@@ -406,6 +432,10 @@ call jacob(u2,v2,wkp)
 call ptospc(ng,ng,wkp,wkq,xfactors,yfactors,xtrig,ytrig)
 ! wkq contains J(u_2,v_2) in spectral space
 sds2=two*wkq-sds2
+if (topogr) then
+   ! Add topographic contribution, -c_1^2*k^2*bt (spectral; see caps.f90):
+   sds2=sds2+tsds
+endif
 ! sds2 is now the full nonlinear ds source in layer 2
 sds2(1,1)=zero ! ensures zero domain average
 
@@ -466,7 +496,6 @@ ramp_fun=f12-f12*cos(pi*time/tramp)
 
 return
 end function ramp_fun
-
 
  !End main program
 end program fopvbal

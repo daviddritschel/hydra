@@ -1,11 +1,8 @@
 #!/bin/csh
 
 #=========================================================================#
-#   Job setup script for the planar gn class of f90 codes.
-#   
+#   Job setup script for the planar sw2l class of f90 codes.
 #=========================================================================#
-
-#==========================================================================
 
 echo
 echo '-------------------------------------------------'
@@ -75,46 +72,229 @@ echo ' Job created at                      ' `date` >> job_info
 echo ' on                                  ' $host >> job_info
 echo ' ' >> job_info
 
+# Initialise a jobname string:
+set prefix=""
+
+#==========================================================================
+# Set up topography if desired:
+
+set topography = "n"
+echo
+echo -n ' Include bottom topography (y/n, default' $topography')? '
+set var=$<
+if ($var != "") set topography=$var
+
+if ($topography == "y") then
+   echo
+   echo ' The topography eta_b(x,y) is scaled by the lower layer depth.'
+   echo
+   echo ' Choose one of the following options for eta_b:'
+   set topt="2"
+   echo ' (1) Random, with variance spectrum c k^{2p+1} exp[-p(k/k_0)^2], or'
+   echo ' (2) Rotated elliptical-Gaussian shape in the domain centre.'
+   echo -n ' Option - (default' $topt')? '
+   set var=$<
+   if ($var != "") set topt=$var
+   echo
+
+   if ($topt == "1") then
+
+      echo ' ' >> job_info
+      echo ' Random topography, with variance spectrum c k^{2p+1} exp[-p(k/k_0)^2]' >> job_info
+      set topgen = "random_top"
+      set pow = "1.0"
+      set rk0 = "16.0"
+      set rms = "0.01"
+      set slope = "0.0"
+
+      echo -n ' p (default' $pow')? '
+      set var=$<
+      if ($var != "") set pow=$var
+
+      echo -n ' k_0 (default' $rk0')? '
+      set var=$<
+      if ($var != "") set rk0=$var
+
+      echo -n ' rms field amplitude (default' $rms')? '
+      set var=$<
+      if ($var != "") set rms=$var
+
+      echo -n ' Mean slope in y (default' $slope')? '
+      set var=$<
+      if ($var != "") set slope=$var
+
+      echo $pow $rk0 > in_$topgen
+      echo $rms >> in_$topgen
+      echo $slope >> in_$topgen
+
+      echo ' p:                                  ' $pow >> job_info
+      echo ' k_0:                                ' $rk0 >> job_info
+      echo ' rms field amplitude:                ' $rms >> job_info
+      echo ' Mean slope in y:                    ' $slope >> job_info
+
+      # Append to jobname prefix:
+      set prefix={$prefix}rt_
+
+   else if ($topt == "2") then
+
+      echo ' ' >> job_info
+      echo ' Rotated elliptical-Gaussian topography in the domain centre' >> job_info
+      echo ' f_0*eta_b/H_nz = A*exp(-(X/a)^2-(Y/b)^2)' >> job_info
+      set topgen = "ellipse_top"
+      set amp = "-1.0"
+      set ael = "2.0"
+      set bel = "0.5"
+      set phi = "30.0"
+
+      echo ' We take f_0*eta_b/H_nz = A*exp(-(X/a)^2-(Y/b)^2), where'
+      echo ' X & Y are rotated CCW by an angle phi from the x & y axes,'
+      echo ' taken to cross through the domain centre.'
+      echo
+      echo -n ' A (default' $amp')? '
+      set var=$<
+      if ($var != "") set amp=$var
+
+      echo -n ' a (default' $ael')? '
+      set var=$<
+      if ($var != "") set ael=$var
+
+      echo -n ' b (default' $bel')? '
+      set var=$<
+      if ($var != "") set bel=$var
+
+      echo -n ' phi (in degrees, default' $phi')? '
+      set var=$<
+      if ($var != "") set phi=$var
+
+      echo $amp > in_$topgen
+      echo $ael >> in_$topgen
+      echo $bel >> in_$topgen
+      echo $phi >> in_$topgen
+
+      echo ' A:                                  ' $amp >> job_info
+      echo ' a:                                  ' $ael >> job_info
+      echo ' b:                                  ' $bel >> job_info
+      echo ' Angle rotated through (degrees):    ' $phi >> job_info
+
+      # Append to jobname prefix:
+      set prefix={$prefix}pt_
+
+   else
+
+      echo ' Not a valid choice - exiting...'
+      /bin/rm -r $tmpdir
+      exit(-1)
+
+   endif
+
+   set topflag=".true."
+
+else
+   set topflag=".false."
+endif
+
 #==========================================================================
 # Get the data generation routine to be used:
 set dataopt="1"
 echo
 echo ' Choose one of the following flow initialisation methods:'
-echo    ' (1) a random baroclinic (mode 2) PV field,'
-echo    ' (2) a PV strip having a parabolic cross-section,'
-echo -n ' (3) a wavy height field  -  (default' $dataopt')? '
+echo    ' (1) a random baroclinic (mode 2) PV distribution, or'
+echo    ' (2) a baroclinic (mode 2) jet - (default' $dataopt')? ' 
+echo -n ' Option - (default' $dataopt')? '
 set var=$<
 if ($var != "") set dataopt=$var
 echo
 
-# Set default parameters common to all data generation routines:
-set topogra = "n"   # Indicates presence of topography
-set ng = "256"      # Inversion grid has dimensions ng x ng
-set nq="80"         # Number of contours used to represent PV
+if ($dataopt == "1") then
 
-# Set defaults for each data generation type:
-if ($dataopt == "1") then 
-   set datagen = "ranpv"
-   set tgsave="1.0"    # Grid data save time increment
-   set tcsave="10.0"   # Contour data save time increment
-   set tsim="100.0"    # Total simulation time
+   # A random PV distribution:
+   set datagen = "random_pv"
 
-else if ($dataopt == "2") then 
-   set datagen = "vstrip"
-   set tgsave="0.25"   # Grid data save time increment
-   set tcsave="2.5"    # Contour data save time increment
-   set tsim="25.0"     # Total simulation time
+   echo ' ' >> job_info
+   echo ' Starting with a random baroclinic PV distribution' >> job_info
+   echo ' ' >> job_info
 
-else if ($dataopt == "3") then 
-   set datagen = "wave"
-   set tgsave="0.25"   # Grid data save time increment
-   set tcsave="2.5"    # Contour data save time increment
-   set tsim="25.0"     # Total simulation time
+   echo ' We take an initial energy spectrum of the form'
+   echo '   E(k) = c k^{2p-3} * exp[-(p-1)*(k/k_0)^2]'
 
-else 
+   set pow  =  "3.0"
+   echo -n ' Power, p (default' $pow')? '
+   set var=$<
+   if ($var != "") set pow=$var
+
+   set ak0  =  "10.0"
+   echo -n ' Peak wavenumber, k0 (default' $ak0')? '
+   set var=$<
+   if ($var != "") set ak0=$var
+
+   set qeddy  =  "0.4"
+   echo -n ' Maximum baroclinic PV magnitude / f (default' $qeddy')? '
+   set var=$<
+   if ($var != "") set qeddy=$var
+
+   echo ' Initial energy spectrum E(k) = c k^{2p-3} * exp[-(p-1)*(k/k_0)^2]' >> job_info
+   echo ' Power, p:                           ' $pow >> job_info
+   echo ' Peak wavenumber, k0:                ' $ak0 >> job_info
+   echo ' Maximum baroclinic PV magnitude / f:' $qeddy >> job_info
+
+   # Create input file for routine:
+   echo $pow $ak0 > in_$datagen
+   echo $qeddy >> in_$datagen
+
+   # Append to jobname prefix:
+   set prefix={$prefix}rq_
+
+else if ($dataopt == "2") then
+
+   # A baroclinic jet
+   set datagen = "bcjet"
+
+   echo ' ' >> job_info
+   echo ' Starting from a baroclinic jet (PV with a Gaussian distribution)' >> job_info
+   echo ' ' >> job_info
+
+   echo ' Consider a baroclinic jet with PV = f*A*exp(-((y-y_c)/w)^2)'
+   echo ' where f is the Coriolis frequency and'
+   echo ' y_c(x) = A_2*sin(2x)+A_3*sin(3x).'
+   echo
+   set robc = "0.5"
+   echo -n ' Enter the baroclinic Rossby number A (default' $robc')? '
+   set var=$<
+   if ($var != "") set robc=$var
+
+   set wid  =  "0.5"
+   echo -n ' Width of the strip w (default' $wid')? '
+   set var=$<
+   if ($var != "") set wid=$var
+
+   set amp2  =  "0.03"
+   echo -n ' A_2 (default' $amp2')? '
+   set var=$<
+   if ($var != "") set amp2=$var
+
+   set amp3  =  "-0.02"
+   echo -n ' A_3 (default' $amp3')? '
+   set var=$<
+   if ($var != "") set amp3=$var
+   
+   echo ' Baroclinic Rossby number, A         ' $robc >> job_info
+   echo ' Width of the strip, w:              ' $wid >> job_info
+   echo ' A_2:                                ' $amp2 >> job_info
+   echo ' A_3:                                ' $amp3 >> job_info
+
+   # Create input file for routine:
+   echo $robc $wid > in_$datagen
+   echo $amp2 $amp3 >> in_$datagen
+
+   # Append to jobname prefix:
+   set prefix={$prefix}jq_
+
+else
+
    echo ' Not a valid choice - exiting...'
-   /bin/rm -r $tmpdir  
+   /bin/rm -r $tmpdir
    exit(-1)
+
 endif
 
 #==========================================================================
@@ -122,81 +302,73 @@ endif
 set pi=3.14159265358979323846
 
 #==========================================================================
-# Choose main physical parameters:
-echo
-echo ' Horizontally, we consider a 2*pi x 2*pi doubly-periodic domain.'
-echo ' Vertically, we consider a total mean depth of unity (wlog).'
-echo
-set hbar2="0.1"
-echo -n ' Fractional mean depth of the upper layer (default' $hbar2')? '
-set var=$<
-if ($var != "") set hbar2=$var
+# Choose main physical parameters by executing a python script:
+$bindir/hinvert
 
-# Fractional mean depth of the lower layer:
-set hbar1=0`echo "scale=6; 1.0-$hbar2" | bc -l`
+# Extract data:
+set dum = `cat ini_params.asc`
 
-set alpha="0.8"
-echo -n ' Upper layer to lower layer density ratio, rho_2/rho_1 (default' $alpha')? '
-set var=$<
-if ($var != "") set alpha=$var
+# Vertical coefficients for converting layer quantities to mode quantities:
+set v11 = $dum[1]
+set v12 = $dum[2]
+set v21 = $dum[3]
+set v22 = $dum[4]
 
-# Set topographical parameters:
-if ($topogra == "y") then 
-   echo
-   echo ' This option is not yet implemented!!!'
-endif
+# Thicknesses of each layer (they are assumed to sum to 1):
+set hbar1 = $dum[5]
+set hbar2 = $dum[6]
+
+# Upper layer to lower layer density ratio, rho_2/rho_1:
+set alpha = $dum[7]
+
+# Acceleration due to gravity:
+set gravity = $dum[8]
 
 #==========================================================================
 # Choose numerical parameters:
 echo
+set ng = "256" # Inversion grid has horizontal dimensions ng x ng
 echo -n ' Grid resolution (default' $ng')? '
 set var=$<
-if ($var != "") set nx=$var
+if ($var != "") set ng=$var
 echo ' Inversion grid resolution:          ' $ng >> job_info
 
-#echo -n ' No. of PV jumps to represent the PV variation (default' $nq')? '
-#set var=$<
-#if ($var != "") set nq=$var
+# Append to jobname prefix:
+set prefix={$prefix}n{$ng}
+
+set nq = "80" # Default number of PV jumps (twice the recommended value of 40)
 echo ' Number of jumps to represent PV, nq:' $nq >> job_info
+
 echo
+set tgsave="1.0"    # Default grid data save time increment
 echo -n ' Time interval between gridded data saves (default' $tgsave')? '
 set var=$<
 if ($var != "") set tgsave=$var
 echo ' Time interval between data saves:   ' $tgsave >> job_info
 
+set tcsave="10.0"   # Default contour data save time increment
 echo -n ' Time interval between contour data saves (default' $tcsave')? '
 set var=$<
 if ($var != "") set tcsave=$var
 echo ' Time interval between contour saves:' $tcsave >> job_info
 
+set tsim="100.0"    # Default total simulation time
 echo -n ' Total simulation time (default' $tsim')? '
 set var=$<
 if ($var != "") set tsim=$var
 echo ' Total simulation time:              ' $tsim >> job_info
 echo ' ' >> job_info
 
-echo
-set cof=`echo "scale=12; 4.0*$pi" | bc -l`
-echo ' We take the Coriolis frequency f = 4*pi, corresponding to an inertial'
-echo ' period of one "day".'
-echo
-echo ' We take the short-scale gravity-wave speed c = sqrt(g*(H_1+H_2)) ='
-echo ' f/k_D where k_D is a characteristic Rossby deformation wavenumber.'
-echo
-set kdef="6"
-echo -n ' Rossby deformation wavenumber (default' $kdef')? '
-set var=$<
-if ($var != "") set kdef=$var
-# Compute c:
-set cgw=`echo "scale=12; $cof/$kdef" | bc -l`
+# Compute nominal gravity wave speed sqrt(g*H) with H = 1 here:
+set cgw=`echo "scale=12; sqrt($gravity)" | bc -l`
 
 # Choose a marginally gravity-wave resolving time step:
 set dt=`echo "scale=14; 2.0*$pi/($ng*$cgw)" | bc -l`
-echo ' Marginally gravity wave resolving time step = ' $dt
+echo ' Marginally gravity wave resolving time step = ' 0{$dt}
 # Adjust to be a fraction of the grid save time:
 set fac=`echo "scale=14; $tgsave/$dt" | bc -l`
 set dt=`echo "scale=14; $tgsave/$fac:r" | bc -l`
-echo ' ... adjusted to = ' $dt
+echo ' ... adjusted to = ' 0{$dt}
 
 # Use default values for hyperviscosity (applied to divergence only):
 set nnu=3
@@ -214,20 +386,24 @@ mkdir src
 cd src
 cp $srcdir/* .
 cp -r $hydradir/init .
-#cp -r $hydradir/post .
+cp -r $hydradir/post .
 
 echo 
 echo " Compiling source files....."
 echo " -----------------------------------------------------------------------"
 
 # Use C pre-processor to put chosen parameters $copts into parameters.f90
-set copts="-DN_G=$ng -DN_CONTQ=$nq -DT_SIM={$tsim}d0 -DT_GSAVE={$tgsave}d0 -DT_CSAVE={$tcsave}d0 -DT_STEP={$dt}d0 -DH_BAR1={$hbar1}d0 -DH_BAR2={$hbar2}d0 -DDEN_RAT={$alpha}d0 -DC_GW={$cgw}d0 -DCOR_FREQ={$cof}d0 -DC_DAMP={$cdamp}d0 -DPOW_HYPER=$nnu"
+set copts="-DN_G=$ng -DN_CONTQ=$nq -DT_SIM={$tsim}d0 -DT_GSAVE={$tgsave}d0 -DT_CSAVE={$tcsave}d0 -DT_STEP={$dt}d0 -DV_11={$v11}d0 -DV_12={$v12}d0 -DV_21={$v21}d0 -DV_22={$v22}d0 -DH_BAR1={$hbar1}d0 -DH_BAR2={$hbar2}d0 -DDEN_RAT={$alpha}d0 -DACC_GRAV={$gravity}d0 -DC_DAMP={$cdamp}d0 -DPOW_HYPER=$nnu -DTOP_FLAG=$topflag -DI_SEED=$iseed"
 
 precomp $copts parameters.f90
 
 # Compile all codes and move sources to sub-directory:
 #make $algo setup $datagen proxy_post_all install clean
-make $algo setup $datagen install clean
+make $algo setup balinit $datagen install clean
+
+if ($topography == "y") then
+   make $topgen install clean
+endif
 
 cd ..
 echo " -----------------------------------------------------------------------"
@@ -235,7 +411,14 @@ echo
 
 #============================================================
 # Execute the data generation script:
-$bindir/$datagen
+echo ' Generating initial PV distribution...'
+$datagen < in_$datagen > out_$datagen
+
+# For topography, execute the topography generation routine:
+if ($topography == "y") then
+   echo ' Generating bottom topography...'
+   $topgen < in_$topgen > out_$topgen
+endif
 
 #==========================================================================
 # Create a directory named after the data generation script:
@@ -244,18 +427,16 @@ if (!(-d $datagen)) mkdir $datagen
 cd $datagen
 
 # Set the job directory name (will be appended by 001, 002 etc...):
-set basejobdir=ng{$ng}H{$hbar1}ld{$rdef}
-
 echo
-echo -n ' Job directory name (default '{$basejobdir}')? '
+echo -n ' Job directory name (default '{$prefix}')? '
 set var=$<
-if ($var != "") set basejobdir=$var
+if ($var != "") set prefix=$var
 
 # work out the last run which has been performed:
 # First make a bogus empty directory so this works!
-mkdir {$basejobdir}r000
-set last_run = `/bin/ls -d {$basejobdir}r??? | tail -c 4 | head -c 3`
-rmdir {$basejobdir}r000
+mkdir {$prefix}r000
+set last_run = `/bin/ls -d {$prefix}r??? | tail -c 4 | head -c 3`
+rmdir {$prefix}r000
 
 @ next_run = ( $last_run + 1 )
 @ p1 = ( $next_run / 100 )
@@ -264,7 +445,7 @@ rmdir {$basejobdir}r000
 @ p3 = ( $jr - ( 10 * $p2 ) )
 set pind={$p1}{$p2}{$p3}
 
-set jobdir={$basejobdir}r{$pind}
+set jobdir={$prefix}r{$pind}
 
 #=============================================================
 # Lastly move all data to desired job directory:
@@ -274,16 +455,15 @@ mv $tmpdir $jobdir
 cd $jobdir
 set datadir=`pwd`
 
-# Possible balance the initial PV field:
-if ($dataopt == "1" || $dataopt == "2") then 
-   echo
-   echo ' Balancing the initial PV field ...'
-   balinit
+# Balance the initial PV field with first-order delta-gamma balance:
+echo
+echo ' Balancing the initial PV field ...'
+balinit
 
-# Copy handy script for viewing spectra:
-/bin/cp $bindir/spec_view .
-
-# *** Need dv, ddv etc
+# Copy handy scripts for post processing:
+/bin/cp $bindir/dv .
+/bin/cp $bindir/ddv .
+/bin/cp $bindir/sv .
 
 echo ' ' >> job_info
 echo ' Job directory:' >> job_info
@@ -293,5 +473,5 @@ echo $datadir >> job_info
 
 echo ' To set the job running, type'
 echo cd $datadir
-echo bjob $algo
+echo bat log $algo
 echo

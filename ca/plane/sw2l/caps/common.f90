@@ -35,4 +35,4 @@ double precision:: t,twist
  !Number of time steps between grid and contour saves:
 double precision:: ngsave,ncsave
 
-end module
+end module common

@@ -2,19 +2,40 @@
 
 # This script plots spectra for a chosen field and for each vertical mode
 
-#=====perform the various generic imports========
+#========== Perform the generic imports =========
 import warnings
 import numpy as np
-import matplotlib as mpl
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-import matplotlib.colors as clrs
-# Set default plot save resolution to a large value:
-mpl.rcParams['savefig.dpi'] = 200
-# Set label size:
-mpl.rcParams['xtick.labelsize'] = 30
-mpl.rcParams['ytick.labelsize'] = 30
-mpl.rcParams['axes.linewidth'] = 3
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.artist import setp
+import matplotlib.cm as cm
+import matplotlib as mpl
+from matplotlib import rcParams
+from matplotlib import rc
+rcParams.update({'figure.autolayout': True})
 warnings.simplefilter("ignore",DeprecationWarning)
+
+# Ensure latex fonts throughout:
+rc('font', **{'family': 'Times New Roman'})
+rc('text', usetex=True)
+
+# set tick label size:
+label_size = 20
+mpl.rcParams['xtick.labelsize'] = label_size
+mpl.rcParams['ytick.labelsize'] = label_size
+# set x tick width and size:
+mpl.rcParams['xtick.major.size'] = 5
+mpl.rcParams['xtick.major.width'] = 2
+mpl.rcParams['xtick.minor.size'] = 3
+mpl.rcParams['xtick.minor.width'] = 1
+# set y tick width and size:
+mpl.rcParams['ytick.major.size'] = 5
+mpl.rcParams['ytick.major.width'] = 2
+mpl.rcParams['ytick.minor.size'] = 3
+mpl.rcParams['ytick.minor.width'] = 1
+# set axes width:
+mpl.rcParams['axes.linewidth'] = 2
 
 #========================================
 #=====----------Main code----------======
@@ -34,26 +55,24 @@ print('   (4)  dimensionless height anomaly')
 print()
 option=int(input(' Option (default 2)? ') or 2)
 
+label1='mode 1'
+label2='mode 2'
 if option==1:
    filename='spectra/zspec.asc'
-   label1='${\\zeta}_1$'
-   label2='${\\zeta}_2$'
-   labely='$\log_{10}\,|\hat{\\zeta}|^2$'
+   labely='$\\log_{10}|\\hat{\\zeta}|^2$'
+   yextent=6.0
 elif option==2:
    filename='spectra/dspec.asc'
-   label1='${\\delta}_1$'
-   label2='${\\delta}_2$'
-   labely='$\log_{10}\,|\hat{\\delta}|^2$'
+   labely='$\\log_{10}|\\hat{\\delta}|^2$'
+   yextent=8.0
 elif option==3:
    filename='spectra/gspec.asc'
-   label1='${\\gamma}_1$'
-   label2='${\\gamma}_2$'
-   labely='$\log_{10}\,|\hat{\\gamma}|^2$'
+   labely='$\\log_{10}|\\hat{\\gamma}|^2$'
+   yextent=6.0
 else:
    filename='spectra/hspec.asc'
-   label1='${h}_1$'
-   label2='${h}_2$'
-   labely='$\log_{10}\,|\hat{h}|^2$'
+   labely='$\\log_{10}|\\hat{h}|^2$'
+   yextent=12.0
 
 # Open input file:
 in_file=open(filename,'r')
@@ -99,11 +118,15 @@ for i in frames:
    smin=min(smin,np.amin(s1[i,:]),np.amin(s2[i,:]))
    smax=max(smax,np.amax(s1[i,:]),np.amax(s2[i,:]))
 
-smin=0.5*int(2.0*(smin+1000.0))-1000.0
 smax=0.5*int(2.0*(smax+1000.0)+1.0)-1000.0
-ymin=float(input(' Minimum log_10(spectrum) to plot (default '+str(smin)+')? ') or smin)
+smin=smax-yextent
+
+ymin_in = input(' Minimum log_10(spectrum) to plot (default '+str(smin)+')? ')
+ymin = float(ymin_in or smin)
 ymax=float(input(' Maximum log_10(spectrum) to plot (default '+str(smax)+')? ') or smax)
 print
+
+aspect=(xmax-xmin)/(ymax-ymin)
 
 #======================================================================
 # Grab the correct sub-array for plotting (ic is the current frame):
@@ -111,19 +134,18 @@ global ic
 ic = 0
 
 # Initiate a plotting window and plot relevant data into it:
-fig = plt.figure(1,figsize=[11,12])
-ax = plt.axes([0.17, 0.17, 0.77, 0.77])
-im  = ax.plot(k[ic],s1[ic],'b-',lw=3,label=label1)
-im2 = ax.plot(k[ic],s2[ic],'r-',lw=3,label=label2)
+fig, ax = plt.subplots(1,figsize=[8,8],layout="constrained")
+im  = ax.plot(k[ic],s1[ic],'b-',lw=2,label=label1)
+im2 = ax.plot(k[ic],s2[ic],'r-',lw=2,label=label2)
 
 # Set plot title, legend and limits of the plot:
-ax.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=36)
-ax.set_xlabel('$\log_{10}\,k$', fontsize=36)
-ax.set_ylabel(labely, fontsize=36)
-ax.tick_params(length=10, width=3)
-ax.legend(loc='lower left',prop={'size':27}, shadow=True)
+ax.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=24)
+ax.set_xlabel('$\\log_{10}k$', fontsize=24)
+ax.set_ylabel(labely, fontsize=24)
+ax.legend(loc='lower left',prop={'size':20}, shadow=True)
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
+ax.set_aspect(aspect)
 
 def on_press(event):
   # Routine to deal with re-plotting the window on keypress. 
@@ -140,17 +162,17 @@ def on_press(event):
     axes.clear()
 
     # Replot the relevant data:
-    axes.plot(k[ic],s1[ic],'b-',lw=3,label=label1)
-    axes.plot(k[ic],s2[ic],'r-',lw=3,label=label2)
+    axes.plot(k[ic],s1[ic],'b-',lw=2,label=label1)
+    axes.plot(k[ic],s2[ic],'r-',lw=2,label=label2)
 
     # Set the title, legend and plot limits:
-    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=36)
-    axes.set_xlabel('$\log_{10}\,k$', fontsize=36)
-    axes.set_ylabel(labely, fontsize=36)
-    axes.tick_params(length=10, width=3)
-    axes.legend(loc='lower left',prop={'size':27}, shadow=True)
+    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=24)
+    axes.set_xlabel('$\\log_{10}k$', fontsize=24)
+    axes.set_ylabel(labely, fontsize=24)
+    axes.legend(loc='lower left',prop={'size':20}, shadow=True)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
+    axes.set_aspect(aspect)
     plt.draw()
 
   if event.key=='-':
@@ -163,17 +185,17 @@ def on_press(event):
     axes.clear()
 
     # Replot the relevant data:
-    axes.plot(k[ic],s1[ic],'b-',lw=3,label=label1)
-    axes.plot(k[ic],s2[ic],'r-',lw=3,label=label2)
+    axes.plot(k[ic],s1[ic],'b-',lw=2,label=label1)
+    axes.plot(k[ic],s2[ic],'r-',lw=2,label=label2)
 
     # Set the title, legend and plot limits:
-    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=36)
-    axes.set_xlabel('$\log_{10}\,k$', fontsize=36)
-    axes.set_ylabel(labely, fontsize=36)
-    axes.tick_params(length=10, width=3)
-    axes.legend(loc='lower left',prop={'size':27}, shadow=True)
+    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=24)
+    axes.set_xlabel('$\\log_{10}k$', fontsize=24)
+    axes.set_ylabel(labely, fontsize=24)
+    axes.legend(loc='lower left',prop={'size':20}, shadow=True)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
+    axes.set_aspect(aspect)
 
     # Finally redraw the plot:
     plt.draw()

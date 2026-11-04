@@ -30,6 +30,7 @@ double precision:: u1pre(ng,ng),v1pre(ng,ng),h1pre(ng,ng)
 double precision:: u2pre(ng,ng),v2pre(ng,ng),h2pre(ng,ng)
 double precision:: ds1(ng,ng),gs1(ng,ng),sgs1(ng,ng)
 double precision:: ds2(ng,ng),gs2(ng,ng),sgs2(ng,ng)
+double precision:: tsds(ng,ng)
 
 double precision:: wka(ng,ng),wkb(ng,ng),wkc(ng,ng),wkd(ng,ng)
 double precision:: wkf(ng,ng),wkg(ng,ng),wkp(ng,ng),wkq(ng,ng)
@@ -42,6 +43,20 @@ double precision:: uio,vio,t
 !----------------------------------------------------------------------
 ! Initialise inversion constants and arrays:
 call init_spectral
+
+!----------------------------------------------------------------------
+ !Read in the bottom topography (height of the bottom surface):
+if (topogr) then
+  open(11,file='bt_init.r8',form='unformatted', &
+        access='direct',status='old',recl=2*nbytes)
+  read(11,rec=1) t,z1
+  close(11)
+   !z1 stores the bottom topography (bt), only temporarily;
+   !convert to spectral space to take Laplacian:
+  call ptospc(ng,ng,z1,tsds,xfactors,yfactors,xtrig,ytrig)
+  tsds=csq1*rksq*tsds
+   !tsds = c_1^2*k^2*bt in spectral space (needed for gs1 & gs2 below)
+endif
 
 !----------------------------------------------------------------------
 ! Read in gridded PV anomaly in each layer:
@@ -192,6 +207,10 @@ do while (enorm .gt. tole)
   wkd=wkb*v1
   call divs(wkc,wkd,gs1)
   ! gs1 contains div(delta_1*u_1,delta_1*v_1) in spectral space
+  if (topogr) then
+    ! Add topographic contribution, -c_1^2*k^2*bt (spectral):
+    gs1=gs1+tsds
+  endif
   call jacob(u1,v1,wka)
   call ptospc(ng,ng,wka,wkb,xfactors,yfactors,xtrig,ytrig)
   ! wkb contains J(u_1,v_1) in spectral space
@@ -207,6 +226,10 @@ do while (enorm .gt. tole)
   wkd=wkb*v2
   call divs(wkc,wkd,gs2)
   ! gs2 contains div(delta_2*u_2,delta_2*v_2) in spectral space
+  if (topogr) then
+    ! Add topographic contribution, -c_1^2*k^2*bt (spectral):
+    gs2=gs2+tsds
+  endif
   call jacob(u2,v2,wka)
   call ptospc(ng,ng,wka,wkb,xfactors,yfactors,xtrig,ytrig)
   ! wkb contains J(u_2,v_2) in spectral space

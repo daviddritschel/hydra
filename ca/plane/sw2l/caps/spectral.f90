@@ -12,7 +12,6 @@ double precision:: bb11(ng,ng),bb12(ng,ng),bb21(ng,ng),bb22(ng,ng)
 double precision:: rksq(ng,ng),rlap(ng,ng), filt(ng,ng)
 double precision:: diss(ng,ng),rdis(ng,ng),rdisi(ng,ng)
 double precision:: bflo(ng,ng),bfhi(ng,ng)
-double precision:: vm11,vm12,vm21,vm22
 
  !For 2D FFTs:
 double precision:: hrkx(ng),hrky(ng),rk(ng)
@@ -80,17 +79,6 @@ enddo
 kmaxred=ng/2
 
 !-----------------------------------------------------------------------
- !Define vertical mode projection coefficients:
-beta1=f12*(hrat-one)+sqrt(f14*(hrat+one)**2-(one-alpha)*hrat)
-vm11=one/sqrt(one+beta1**2)
-vm12=beta1*vm11
-beta2=beta1/mubar
-vm22=one/sqrt(one+beta2**2)
-vm21=-beta2*vm22
- !For a field F_j in layers j = 1 & 2, its projection on vertical mode 1
- !is F_1*vm11 + F_2*vm12, while for mode 2, it is F_1*vm21 + F_2*vm22.
-
-!-----------------------------------------------------------------------
  !Define a variety of spectral operators:
 
  !Hyperviscosity coefficient (Dritschel, Gottwald & Oliver, JFM (2017)):
@@ -104,7 +92,7 @@ rkfsq=(dble(ng)/3.d0)**2
 kc=ng/6
 fac=one/dble(kc**2)
 
- !Squared Coriolis frequency:
+ !Squared Coriolis frequency (used only in this subroutine):
 fsq=cof**2
 
  !Define all spectrally-truncated operators:
@@ -185,7 +173,7 @@ bflo(1,1)=zero
 diss(1,1)=zero
 
 return 
-end subroutine
+end subroutine init_spectral
 
 !============================================================================
 subroutine main_invert(qs1,qs2,ds1,ds2,gs1,gs2,h1,h2,u1,u2,v1,v2,q1,q2,z1,z2)
@@ -358,7 +346,7 @@ call dealias(z1)
 call dealias(z2)
 
 return
-end subroutine
+end subroutine main_invert
 
 !=================================================================
 subroutine dealias(aa)
@@ -379,7 +367,7 @@ wka=filt*wka
 call spctop(ng,ng,wka,aa,xfactors,yfactors,xtrig,ytrig)
 
 return
-end subroutine
+end subroutine dealias
 
 !=================================================================
 subroutine gradient(ff,ffx,ffy)
@@ -403,7 +391,7 @@ call yderiv(ng,ng,hrky,ff,vtmp)
 call spctop(ng,ng,vtmp,ffy,xfactors,yfactors,xtrig,ytrig)
 
 return
-end subroutine
+end subroutine gradient
 
 !=================================================================
 subroutine jacob(aa,bb,cc)
@@ -443,7 +431,7 @@ call spctop(ng,ng,wkb,by,xfactors,yfactors,xtrig,ytrig)
 cc=ax*by-ay*bx
 
 return
-end subroutine
+end subroutine jacob
 
 !=================================================================
 subroutine divs(aa,bb,cs)
@@ -472,7 +460,7 @@ call yderiv(ng,ng,hrky,wka,cs)
 cs=wkb+cs
 
 return
-end subroutine
+end subroutine divs
 
 !===================================================================
 
@@ -518,8 +506,8 @@ do ky=2,ng
 enddo
 
 return
-end subroutine
+end subroutine spec1d
 
 !===================================================================
 
-end module     
+end module spectral

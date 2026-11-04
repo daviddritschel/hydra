@@ -99,7 +99,7 @@ jtime=itime/ncsave
 if (ncsave*jtime .eq. itime) call savecont(jtime+1)
 
 return
-end subroutine
+end subroutine advect
 
 !=======================================================================
 
@@ -131,7 +131,7 @@ qd2=bfhi*(qs2-qc2)
 ! Here bfhi = 1-F is a high-pass spectral filter
 
 return
-end subroutine
+end subroutine init
 
 !=======================================================================
 
@@ -167,7 +167,7 @@ call spctop(ng,ng,qd2,qr(:,:,2),xfactors,yfactors,xtrig,ytrig)
 !       and qd1,2 will be redefined upon re-entry in subroutine init.
 
 return
-end subroutine
+end subroutine prepare
 
 !=======================================================================
 
@@ -352,7 +352,7 @@ enddo
 t=t+dt
 
 return
-end subroutine
+end subroutine advance
 
 !=======================================================================
 
@@ -488,7 +488,7 @@ sgs2=-cof*sgs2-rksq*wks
 sgs2(1,1)=zero ! ensures zero domain average
 
 return
-end subroutine
+end subroutine source
 
 !=======================================================================
 
@@ -524,7 +524,7 @@ call main_invert(qt1,qt2,ds1,ds2,gs1,gs2,h1,h2,u1,u2,v1,v2,q1,q2,z1,z2)
 !       hj, uj, vj, qj and zj are in physical space (j = 1 & 2).
 
 return
-end subroutine
+end subroutine inversion
 
 !=======================================================================
 
@@ -558,7 +558,7 @@ vio=cio*sum(h1*v1+mubar*h2*v2)
 write(16,'(1x,f12.5,2(1x,f14.10))') t,uio,vio
 
 return
-end subroutine
+end subroutine diagnose
 
 !=======================================================================
 
@@ -584,7 +584,7 @@ wkb=hbar2*(one+h2)
 
 ! Horizontal and vertical parts of the kinetic energy:
 ekih=ekmf*sum(wka*(u1**2+v1**2)+alpha*wkb*(u2**2+v2**2))
-! ekmf = 0.5*glx*gly/(hbar_1+hbar_2)
+! ekmf = 0.5*glx*gly
 ekiv=zero
 
 ! Potential energy:
@@ -702,7 +702,7 @@ write(35,rec=igrids) real(t),real(z1)
 write(45,rec=igrids) real(t),real(z2)
 
 return
-end subroutine
+end subroutine savegrid
 
 !=======================================================================
       
@@ -737,18 +737,18 @@ write(83,rec=2*irec) real(t),real(qa)
 ! Note: both layers are saved above
 
 ! Save PV contours:
-open(81,file='cont/qqindex'//pind,form='unformatted',status='replace')
+open(81,file='contours/qqindex'//pind,form='unformatted',status='replace')
 write(81) npq(1:nq),i1q(1:nq),indq(1:nq),layq(1:nq)
 close(81)
 
-open(82,file='cont/qqnodes'//pind,form='unformatted',status='replace')
+open(82,file='contours/qqnodes'//pind,form='unformatted',status='replace')
 write(82) xq(1:nptq),yq(1:nptq)
 close(82)
 
 return
-end subroutine
+end subroutine savecont
 
 !=======================================================================
 
 ! Main end module
-end module
+end module evolution

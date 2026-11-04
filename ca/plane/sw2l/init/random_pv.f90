@@ -1,4 +1,4 @@
-program ranpv
+program random_pv
 !-----------------------------------------------------------------
 !    Generates a random phased baroclinic (mode 2) PV distribution
 !    with spectrum S(k) = c * k^{2p-3} * exp[-(p-1)*(k/k_0)^2],
@@ -8,38 +8,50 @@ program ranpv
 
 use spectral
 
-implicit double precision(a-h,o-z)
-double precision:: qs(ng,ng),qa(ng,ng)
+implicit none
 
+ !Maximum x & y wavenumbers:
+integer,parameter:: nw=ng/2
+
+double precision:: qs(ng,ng),qa(ng,ng)
+double precision:: qeddy,fac,s,phix,phiy
+double precision:: p,p1,p2,rk0,amp,cx,sx,cy,sy
+
+integer:: kx,ky,kxc,kyc,k,i,iy
+integer, dimension(:), allocatable :: seed
+
+!-----------------------------------------------------------------------
+ !Initialise random number generator:
+call random_seed(size=k)
+allocate(seed(1:k))
+seed(:)=iseed
+do i=1,iseed
+  call random_seed(put=seed)
+enddo
+
+!-----------------------------------------------------------------------
  !Initialise inversion constants and arrays:
 call init_spectral
 
-nw=ng/2
-
+!-----------------------------------------------------------------------
 write(*,*) ' The baroclinic (mode 2) PV has the spectrum'
 write(*,*) '  S(k) = c k^{2p-3} * exp[-(p-1)*(k/k_0)^2].'
 write(*,*)
 write(*,*) ' Enter p > 1 & k_0:'
-read(*,*) pow,ak0
+read(*,*) p,rk0
 
 write(*,*) ' Enter the maximum baroclinic PV magnitude / f:'
 read(*,*) qeddy
 qeddy=cof*qeddy
 
-write(*,*) ' Enter an integer seed for the random # generator:'
-read(*,*) ngen
-do i=1,ngen
-  uni=rand(0)
-enddo
-
 ! Generate spectral amplitude sqrt{k^{2(p-2)} * exp[-(p-1)*(k/k_0)^2]} :
-efac=one/ak0**2
-p1=pow-one
-p2=pow-two
+fac=one/rk0**2
+p1=p-one
+p2=p-two
 do ky=1,nw+1
   do kx=1,nw+1
-    s=efac*(rk(kx)**2+rk(ky)**2)
-    qs(kx,ky)=sqrt(efac*s**p2*exp(-p1*s))
+    s=fac*(rk(kx)**2+rk(ky)**2)
+    qs(kx,ky)=sqrt(fac*s**p2*exp(-p1*s))
   enddo
 enddo
 
@@ -113,25 +125,12 @@ qs(nw+1,nw+1)=zero
 call spctop(ng,ng,qs,qa,xfactors,yfactors,xtrig,ytrig)
 
 ! Work out max/min values and scale:
-qamin=qa(1,1)
-qamax=qamin
-do ix=1,ng
-  do iy=1,ng
-    qamin=min(qamin,qa(iy,ix))
-    qamax=max(qamax,qa(iy,ix))
-  enddo
-enddo
-
-fmult=qeddy/max(abs(qamax),abs(qamin))
-do ix=1,ng
-  do iy=1,ng
-    qa(iy,ix)=fmult*qa(iy,ix)
-  enddo
-enddo
+fac=qeddy/max(maxval(qa),abs(minval(qa)))
+qa=fac*qa
 
 ! Write PV anomaly in each layer:
 open(11,file='qq_init.r8',form='unformatted', &
-    & access='direct',status='replace',recl=2*nbytes)
+      access='direct',status='replace',recl=2*nbytes)
 fac=-vm12/(vm11*vm22-vm12*vm21)
 write(11,rec=1) zero,fac*qa
 fac=-fac*vm11/vm12
@@ -142,16 +141,15 @@ close(11)
 ! Write zero fields of divergence and acceleration divergence:
 qa=zero
 open(11,file='dd_init.r8',form='unformatted', &
-    & access='direct',status='replace',recl=2*nbytes)
+      access='direct',status='replace',recl=2*nbytes)
 write(11,rec=1) zero,qa
 write(11,rec=2) zero,qa
 close(11)
 
 open(11,file='gg_init.r8',form='unformatted', &
-    & access='direct',status='replace',recl=2*nbytes)
+      access='direct',status='replace',recl=2*nbytes)
 write(11,rec=1) zero,qa
 write(11,rec=2) zero,qa
 close(11)
 
-
-end program
+end program random_pv
