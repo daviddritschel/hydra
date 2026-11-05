@@ -128,16 +128,16 @@ call spctop(ng,ng,qs,qa,xfactors,yfactors,xtrig,ytrig)
 fac=qeddy/max(maxval(qa),abs(minval(qa)))
 qa=fac*qa
 
+!-------------------------------------------------------------
 ! Write PV anomaly in each layer:
 open(11,file='qq_init.r8',form='unformatted', &
       access='direct',status='replace',recl=2*nbytes)
-fac=-vm12/(vm11*vm22-vm12*vm21)
-write(11,rec=1) zero,fac*qa
-fac=-fac*vm11/vm12
-write(11,rec=2) zero,fac*qa
+write(11,rec=1) zero,-mrat2*qa
+write(11,rec=2) zero, mrat1*qa
 close(11)
+! Here, mrat1 = m_1/(m_1+m_2) and mrat2 = m_2/(m_1+m_2) 
+! --- see constants.f90
 
-!-------------------------------------------------------------
 ! Write zero fields of divergence and acceleration divergence:
 qa=zero
 open(11,file='dd_init.r8',form='unformatted', &

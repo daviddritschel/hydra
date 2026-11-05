@@ -61,6 +61,7 @@ double precision,parameter:: ekmf=f12*garea,epmf=gravity*ekmf
 
 ! !Mean layer depth & mass ratio, and related constants:
 double precision,parameter:: hrat=hbar2/hbar1,mubar=alpha*hrat
-double precision,parameter:: wmass=one/(one+mubar),cio=wmass*dsumi
+double precision,parameter:: mrat1=one/(one+mubar),mrat2=mubar*mrat1
+double precision,parameter:: cio=mrat1*dsumi
 
 end module constants

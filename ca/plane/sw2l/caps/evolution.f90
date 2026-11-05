@@ -613,10 +613,10 @@ wkp=z1
 call ptospc(ng,ng,wkp,wka,xfactors,yfactors,xtrig,ytrig)
 wkp=z2
 call ptospc(ng,ng,wkp,wkb,xfactors,yfactors,xtrig,ytrig)
-wkp=wka*vm11+wkb*vm12    !Vertical mode 1
+wkp=wka*mrat1+wkb*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=wka*vm21+wkb*vm22    !Vertical mode 2
+wkp=wkb*mrat1-wka*mrat2    !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(51,'(f9.2,1x,i5)') t,kmaxred
@@ -625,10 +625,10 @@ do k=1,kmaxred
 enddo
 
 ! Divergence:
-wkp=ds1*vm11+ds2*vm12    !Vertical mode 1
+wkp=ds1*mrat1+ds2*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=ds1*vm21+ds2*vm22    !Vertical mode 2
+wkp=ds2*mrat1-ds1*mrat2    !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(52,'(f9.2,1x,i5)') t,kmaxred
@@ -637,10 +637,10 @@ do k=1,kmaxred
 enddo
 
 ! Acceleration divergence:
-wkp=gs1*vm11+gs2*vm12    !Vertical mode 1
+wkp=gs1*mrat1+gs2*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=gs1*vm21+gs2*vm22    !Vertical mode 2
+wkp=gs2*mrat1-gs1*mrat2    !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(53,'(f9.2,1x,i5)') t,kmaxred
@@ -653,10 +653,10 @@ wkp=h1
 call ptospc(ng,ng,wkp,wka,xfactors,yfactors,xtrig,ytrig)
 wkp=h2
 call ptospc(ng,ng,wkp,wkb,xfactors,yfactors,xtrig,ytrig)
-wkp=wka*vm11+wkb*vm12    !Vertical mode 1
+wkp=wka*mrat1+wkb*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=wka*vm21+wkb*vm22    !Vertical mode 2
+wkp=wkb*mrat1-wka*mrat2    !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(54,'(f9.2,1x,i5)') t,kmaxred

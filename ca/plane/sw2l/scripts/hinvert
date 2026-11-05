@@ -51,12 +51,13 @@ g = csq1+csq2
 # This uses the fact that H_1+H_2 = 1.
 
 # Define vertical mode projection coefficients:
+# First "barotropic" mode (ensure v11 + v22 = 1 wlog):
 bet1 = 0.5*(hrat-1.0)+np.sqrt(0.25*(hrat+1.0)**2-(1.0-alpha)*hrat)
-v11 = 1.0/np.sqrt(1.0+bet1**2)
-v12 = bet1*v11
-bet2 = bet1/mubar
-v22 = 1.0/np.sqrt(1.0+bet2**2)
-v21 = -bet2*v22
+v11 =  1.0/(1.0+bet1)
+v12 = bet1/(1.0+bet1)
+# Second "baroclinic" mode (ensure v22 = 1 wlog):
+v22 = 1.0
+v21 = -bet1/mubar
 # For a field F_j in layers j = 1 & 2, its projection on vertical mode 1
 # is F_1*v11 + F_2*v12, while for mode 2, it is F_1*v21 + F_2*v22.
 
@@ -71,6 +72,11 @@ vt11 = v22/D
 vt12 = -v12/D
 vt22 = v11/D
 vt21 = -v21/D
+
+print()
+print(' The vertical mode -> layer matrix coefficients are')
+print(' vt_11 =',round(vt11,8),'  vt_12 =',round(vt12,8))
+print(' vt_21 =',round(vt21,8),'  vt_22 =',round(vt22,8))
 
 # Coefficients multiplying the Laplacian in the inversion of \tilde{h}_j:
 ctsq1 = (csq1*(v11+v12)*v22-csq2*(alpha*v11+v12)*v21)/D
