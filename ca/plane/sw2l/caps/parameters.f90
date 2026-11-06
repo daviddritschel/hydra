@@ -26,14 +26,9 @@ double precision,parameter:: tgsave=T_GSAVE, tcsave=T_CSAVE
 ! ==> Physical parameters <==
 
 ! *** Note, the Coriolis frequency f (cof in the code) is 4*pi by default ***
-double precision,parameter:: vm11=V_11, vm12=V_12, vm21=V_21, vm22=V_22
 double precision,parameter:: hbar1=H_BAR1, hbar2=H_BAR2, alpha=DEN_RAT
 double precision,parameter:: gravity=ACC_GRAV
 double precision,parameter:: cdamp=C_DAMP, nnu=POW_HYPER
-! vmij   : Coefficients to convert layer quantities to mode quantities;
-!          for a field F_j in layers j = 1 & 2, its projection onto
-!          vertical mode 1 is F_1*vm11 + F_2*vm12, while for mode 2,
-!          its projection is  F_1*vm21 + F_2*vm22
 ! hbar1  : Mean fluid depth of layer 1, H_1
 ! hbar2  : Mean fluid depth of layer 2, H_2
 !          *** Note, wlog we take hbar1 + hbar2 = 1 throughout ***

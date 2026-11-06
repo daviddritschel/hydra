@@ -135,8 +135,8 @@ open(11,file='qq_init.r8',form='unformatted', &
 write(11,rec=1) zero,-mrat2*qa
 write(11,rec=2) zero, mrat1*qa
 close(11)
-! Here, mrat1 = m_1/(m_1+m_2) and mrat2 = m_2/(m_1+m_2) 
-! --- see constants.f90
+! Here, mrat1 = m_1/(m_1+m_2) and mrat2 = m_2/(m_1+m_2) where
+! m_j is the mass of layer j --- see constants.f90.
 
 ! Write zero fields of divergence and acceleration divergence:
 qa=zero

@@ -606,7 +606,11 @@ write(*,'(a,f9.2,a,f13.6)') ' t = ',t,'  E_tot = ',etot
 
 !-------------------------------------------------------------------
 ! Compute 1d vorticity, divergence, acceleration divergence and
-! height spectra for each vertical mode:
+! height spectra for each vertical mode. Layer quantities F_j are
+! projected onto the barotropic mode using F_1*mrat1 + F_2*mrat2
+! and onto the baroclinic mode using F_2*mrat1 - F_1*mrat2 where
+! mrat1 = m_1/(m_1+m_2) and mrat2 = m_2/(m_1+m_2), with m_j the
+! mean mass of layer j.
 
 ! Relative vorticity:
 wkp=z1

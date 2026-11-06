@@ -308,12 +308,6 @@ $bindir/hinvert
 # Extract data:
 set dum = `cat ini_params.asc`
 
-# Vertical coefficients for converting layer quantities to mode quantities:
-set v11 = $dum[1]
-set v12 = $dum[2]
-set v21 = $dum[3]
-set v22 = $dum[4]
-
 # Thicknesses of each layer (they are assumed to sum to 1):
 set hbar1 = $dum[5]
 set hbar2 = $dum[6]
@@ -393,7 +387,7 @@ echo " Compiling source files....."
 echo " -----------------------------------------------------------------------"
 
 # Use C pre-processor to put chosen parameters $copts into parameters.f90
-set copts="-DN_G=$ng -DN_CONTQ=$nq -DT_SIM={$tsim}d0 -DT_GSAVE={$tgsave}d0 -DT_CSAVE={$tcsave}d0 -DT_STEP={$dt}d0 -DV_11={$v11}d0 -DV_12={$v12}d0 -DV_21={$v21}d0 -DV_22={$v22}d0 -DH_BAR1={$hbar1}d0 -DH_BAR2={$hbar2}d0 -DDEN_RAT={$alpha}d0 -DACC_GRAV={$gravity}d0 -DC_DAMP={$cdamp}d0 -DPOW_HYPER=$nnu -DTOP_FLAG=$topflag -DI_SEED=$iseed"
+set copts="-DN_G=$ng -DN_CONTQ=$nq -DT_SIM={$tsim}d0 -DT_GSAVE={$tgsave}d0 -DT_CSAVE={$tcsave}d0 -DT_STEP={$dt}d0 -DH_BAR1={$hbar1}d0 -DH_BAR2={$hbar2}d0 -DDEN_RAT={$alpha}d0 -DACC_GRAV={$gravity}d0 -DC_DAMP={$cdamp}d0 -DPOW_HYPER=$nnu -DTOP_FLAG=$topflag -DI_SEED=$iseed"
 
 precomp $copts parameters.f90
 
