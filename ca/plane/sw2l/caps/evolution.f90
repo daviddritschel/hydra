@@ -608,9 +608,9 @@ write(*,'(a,f9.2,a,f13.6)') ' t = ',t,'  E_tot = ',etot
 ! Compute 1d vorticity, divergence, acceleration divergence and
 ! height spectra for each vertical mode. Layer quantities F_j are
 ! projected onto the barotropic mode using F_1*mrat1 + F_2*mrat2
-! and onto the baroclinic mode using F_2*mrat1 - F_1*mrat2 where
-! mrat1 = m_1/(m_1+m_2) and mrat2 = m_2/(m_1+m_2), with m_j the
-! mean mass of layer j.
+! and onto the baroclinic mode using F_2 - F_1 where
+! mrat1 = m_1/(m_1+m_2) and mrat2 = m_2/(m_1+m_2),
+! with m_j the mean mass of layer j.
 
 ! Relative vorticity:
 wkp=z1
@@ -620,7 +620,7 @@ call ptospc(ng,ng,wkp,wkb,xfactors,yfactors,xtrig,ytrig)
 wkp=wka*mrat1+wkb*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=wkb*mrat1-wka*mrat2    !Baroclinic
+wkp=wkb-wka                !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(51,'(f9.2,1x,i5)') t,kmaxred
@@ -632,7 +632,7 @@ enddo
 wkp=ds1*mrat1+ds2*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=ds2*mrat1-ds1*mrat2    !Baroclinic
+wkp=ds2-ds1                !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(52,'(f9.2,1x,i5)') t,kmaxred
@@ -644,7 +644,7 @@ enddo
 wkp=gs1*mrat1+gs2*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=gs2*mrat1-gs1*mrat2    !Baroclinic
+wkp=gs2-gs1                !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(53,'(f9.2,1x,i5)') t,kmaxred
@@ -660,7 +660,7 @@ call ptospc(ng,ng,wkp,wkb,xfactors,yfactors,xtrig,ytrig)
 wkp=wka*mrat1+wkb*mrat2    !Barotropic
 call spec1d(wkp,spec1)
 spec1=log10(spmf*spec1+1.d-32)
-wkp=wkb*mrat1-wka*mrat2    !Baroclinic
+wkp=wkb-wka                !Baroclinic
 call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(54,'(f9.2,1x,i5)') t,kmaxred
