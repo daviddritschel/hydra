@@ -36,7 +36,7 @@ mpl.rcParams['ytick.major.width'] = 2
 mpl.rcParams['ytick.minor.size'] = 5
 mpl.rcParams['ytick.minor.width'] = 1
 # set axes width:
-mpl.rcParams['axes.linewidth'] = 3
+mpl.rcParams['axes.linewidth'] = 2
 
 #=================================================================
 # Read energies:
@@ -54,23 +54,23 @@ if opt != 'n':
 
 #=================================================================
 # Set up figure:
-fig, (ax1, ax2) = plt.subplots(figsize=[14.0,6.0], ncols=2)
+fig, (ax1, ax2) = plt.subplots(figsize=[13.0,6.0], ncols=2)
 
 tmax=float(int(t[-1])+1)
 
-ax1.set_xlabel('$t$', fontsize=30)
-ax1.set_ylabel('$\mathcal{K},~\mathcal{P},~\mathcal{E}$', fontsize=30)
+ax1.set_xlabel(r'$t$', fontsize=30)
+ax1.set_ylabel('Energy', fontsize=30)
 ax1.set_xlim(0.0,tmax)
-ax1.plot(t,ekin,c='r',lw=1,label='$\mathcal{K}$')
-ax1.plot(t,epot,c='b',lw=1,label='$\mathcal{P}$')
-ax1.plot(t,etot,c='k',lw=1,label='$\mathcal{E}$')
+ax1.plot(t,ekin,c='r',lw=1,label='${\\mathcal{K}}$')
+ax1.plot(t,epot,c='b',lw=1,label='${\\mathcal{P}}$')
+ax1.plot(t,etot,c='k',lw=1,label='${\\mathcal{E}}$')
 ax1.legend(loc='best',prop={'size':20})
 ymin,ymax=ax1.get_ylim()
 ax1.set_ylim(ymin,ymax)
 ax1.set(adjustable='box', aspect=tmax/(ymax-ymin))
 
 ax2.set_xlabel('$t$', fontsize=30)
-ax2.set_ylabel('$\mathcal{A}$', fontsize=30)
+ax2.set_ylabel('${\\mathcal{A}}$', fontsize=30)
 ax2.set_xlim(0.0,tmax)
 ax2.plot(t,angm,c='k',lw=1)
 ymin,ymax=ax2.get_ylim()
@@ -84,9 +84,9 @@ if opt != 'n':
    ax2.plot(tz,angmz,c='k',lw=1,dashes=[4,4])
 
 # Save image:
-fig.savefig('ene_ang.eps', format='eps', dpi=300)
+fig.savefig('ene_ang.pdf', format='pdf', dpi=600)
 
 print(' To display the results, type:')
 print()
-print(' gv ene_ang.eps &')
+print(' ev ene_ang.pdf &')
 print()

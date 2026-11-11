@@ -5,39 +5,42 @@
 #================================================================
 
 #=====perform various generic imports=====
-import warnings,os
+import os,warnings
 import numpy as np
-
-from matplotlib import pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.colors as clrs
+# Set default plot save resolution to a large value:
+mpl.rcParams['savefig.dpi'] = 200
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.artist import setp
-import matplotlib as mpl
-import matplotlib.colors as clrs
-import matplotlib.cm as cm
+#import matplotlib.cm as cm
 from matplotlib import rcParams
 from matplotlib import rc
 rcParams.update({'figure.autolayout': True})
-
-## global settings
-
-# set tick label size:
-label_size = 25
-mpl.rcParams['xtick.labelsize'] = label_size
-mpl.rcParams['ytick.labelsize'] = label_size
-# set x tick width and size:
-mpl.rcParams['xtick.major.size'] = 10
-mpl.rcParams['xtick.major.width'] = 2
-mpl.rcParams['xtick.minor.size'] = 5
-mpl.rcParams['xtick.minor.width'] = 1
-# set y tick width and size:
-mpl.rcParams['ytick.major.size'] = 10
-mpl.rcParams['ytick.major.width'] = 2
-mpl.rcParams['ytick.minor.size'] = 5
-mpl.rcParams['ytick.minor.width'] = 1
+warnings.simplefilter("ignore",DeprecationWarning)
 
 # Ensure latex fonts throughout:
 rc('font', **{'family': 'Times New Roman'})
 rc('text', usetex=True)
+
+# set tick label size:
+label_size = 20
+mpl.rcParams['xtick.labelsize'] = label_size
+mpl.rcParams['ytick.labelsize'] = label_size
+# set x tick width and size:
+mpl.rcParams['xtick.major.size'] = 5
+mpl.rcParams['xtick.major.width'] = 2
+mpl.rcParams['xtick.minor.size'] = 3
+mpl.rcParams['xtick.minor.width'] = 1
+# set y tick width and size:
+mpl.rcParams['ytick.major.size'] = 5
+mpl.rcParams['ytick.major.width'] = 2
+mpl.rcParams['ytick.minor.size'] = 3
+mpl.rcParams['ytick.minor.width'] = 1
+# set axes width:
+mpl.rcParams['axes.linewidth'] = 2
 
 # --------------------- Function definitions -----------------------
 def contint(fmin,fmax):
@@ -91,8 +94,10 @@ lon=np.linspace(-np.pi,np.pi,nt+1)
 
 X, Y = np.meshgrid(lon, lat)
 
-print
-prefix=str(raw_input(' Data file prefix (hh, dd, gg, qq, ...; default hh)? ') or 'hh')
+print()
+q_in = input(' Data file prefix (hh, dd, gg, qq, ...; default hh)? ')
+prefix = str(q_in or 'hh')
+
 filename='evolution/'+prefix+'.r4'
 
 #Read in data and find min/max values:
@@ -100,7 +105,14 @@ in_file = open(filename,'r')
 raw_array = np.fromfile(in_file,dtype=np.float32)
 in_file.close()
 
-frame=int(raw_input(' Frame to read (0 for first; default 30)? ') or 30)
+#Open ecomp.asc to get final time and corresponding frame:
+in_file=open('evolution/ecomp.asc','r')
+time, e1, e2, e3, e4 = np.loadtxt(in_file,dtype=float,unpack=True)
+in_file.close()
+
+frame_def = int((round(time[-1],0)+0.0001)/(time[1]-time[0]))
+q_in = input(' Frame to read (0 for first; default '+str(frame_def)+')? ')
+frame = int(q_in or frame_def)
 
 N=ng*nt
 Z=np.zeros([ng+2,nt+1])
@@ -112,44 +124,25 @@ Z[ng+1,0:nt]=1.5*Z[ng,0:nt]-0.5*Z[ng-1,0:nt]
 #Add periodic edge in longitude:
 Z[0:ng+2,nt]=Z[0:ng+2,0]
 
-opt=str(raw_input(' Add axis labels and ticks (y/n; default y)? ') or 'y')
+q_in = input(' Add axis labels and ticks (y/n; default y)? ')
+opt = str(q_in or 'y')
 
-#-------------------------------------------
+#-----------------------------------------------------------------------------
 #Next plot results:
 Zmin=np.amin(Z)
 Zmax=np.amax(Z)
-print ' Min field value = ',Zmin,'  Max field value = ',Zmax
+print(' Min field value = ',round(Zmin,5),'  Max field value = ',round(Zmax,5))
 
-if prefix=='hh':
-   dZ=120/9522.958
-   print
-   print ' *** Contour interval used in the paper = ',dZ
-   print
-elif prefix=='qq':
-   dZ=2*np.pi*9.3385e-6/7.292e-5
-   print
-   print ' *** Contour interval used in the paper = ',dZ
-   print
-elif prefix=='dd':
-   dZ=4*np.pi*0.001
-   print
-   print ' *** Contour interval used in the paper = ',dZ
-   print
-elif prefix=='gg':
-   dZ=(4*np.pi)**2*0.02
-   print
-   print ' *** Contour interval used in the paper = ',dZ
-   print
-
-Zmax=max(Zmax,abs(Zmin))
 Zmin=-Zmax
 dZ_def=contint(Zmin,Zmax)/2.0
-dZ=float(raw_input(' Contour interval? (default '+str(dZ_def)+') ') or dZ_def)
+q_in = input(' Contour interval (default '+str(dZ_def)+')? ')
+dZ = float(q_in or dZ_def)
+
 jmax=int(Zmax/dZ+0.5)
 Zmax=dZ*(float(jmax)-0.5)
 clevels=np.linspace(-Zmax,Zmax,2*jmax)
 
-fig1 = plt.figure(1,figsize=[10,5])
+fig1 = plt.figure(1,figsize=[12,6])
 ax1 = fig1.add_subplot(111)
 
 ax1.xaxis.set_ticks([-np.pi,-np.pi/2.0,0.0,np.pi/2.0,np.pi])
@@ -157,8 +150,8 @@ ax1.xaxis.set_ticks([-np.pi,-np.pi/2.0,0.0,np.pi/2.0,np.pi])
 ax1.yaxis.set_ticks([-np.pi/2.0,0.0,np.pi/2.0])
 
 if opt=='y':
-   ax1.set_xlabel('$\\lambda$', fontsize=30)
-   ax1.set_ylabel('$\\phi$', fontsize=30)
+   ax1.set_xlabel('$\\lambda$', fontsize=24)
+   ax1.set_ylabel('$\\phi$', fontsize=24)
    ax1.set_xticklabels([r'$-\pi$',r'$-\pi/2$',r'$0$',r'$\pi/2$',r'$\pi$'],fontsize=20)
    ax1.set_yticklabels([r'$-\pi/2$',r'$0$',r'$\pi/2$'],fontsize=20)
 else:
@@ -166,10 +159,13 @@ else:
    plt.setp(ax1.get_yticklabels(), visible=False)
 
 # Contour:
-ax1.contour(X,Y,Z,clevels,colors='k',origin='lower',extent=(-np.pi,np.pi,-np.pi/2,np.pi/2),linewidths=2)
+ax1.contour(X,Y,Z,clevels,colors='k',origin='lower',extent=(-np.pi,np.pi,-np.pi/2,np.pi/2),linewidths=1)
 
 # Save figure after cropping:
-figname=prefix+str(frame)+'.eps'
-plt.savefig(figname, format='eps', dpi=600)
+figname=prefix+str(frame)+'.pdf'
+plt.savefig(figname, format='pdf', dpi=600)
 
-plt.show()
+print(' To display the results, type:')
+print()
+print(' ev',figname,'&')
+print()

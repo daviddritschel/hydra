@@ -6,16 +6,40 @@
 #=====perform the various generic imports========
 import warnings
 import numpy as np
+import matplotlib.patches as mpatches
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as clrs
 # Set default plot save resolution to a large value:
 mpl.rcParams['savefig.dpi'] = 200
-# Set label size:
-mpl.rcParams['xtick.labelsize'] = 30
-mpl.rcParams['ytick.labelsize'] = 30
-mpl.rcParams['axes.linewidth'] = 3
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.artist import setp
+#import matplotlib.cm as cm
+from matplotlib import rcParams
+from matplotlib import rc
+rcParams.update({'figure.autolayout': True})
 warnings.simplefilter("ignore",DeprecationWarning)
+
+# Ensure latex fonts throughout:
+rc('font', **{'family': 'Times New Roman'})
+rc('text', usetex=True)
+
+# set tick label size:
+label_size = 20
+mpl.rcParams['xtick.labelsize'] = label_size
+mpl.rcParams['ytick.labelsize'] = label_size
+# set x tick width and size:
+mpl.rcParams['xtick.major.size'] = 5
+mpl.rcParams['xtick.major.width'] = 2
+mpl.rcParams['xtick.minor.size'] = 3
+mpl.rcParams['xtick.minor.width'] = 1
+# set y tick width and size:
+mpl.rcParams['ytick.major.size'] = 5
+mpl.rcParams['ytick.major.width'] = 2
+mpl.rcParams['ytick.minor.size'] = 3
+mpl.rcParams['ytick.minor.width'] = 1
+# set axes width:
+mpl.rcParams['axes.linewidth'] = 2
 
 #========================================
 #=====----------Main code----------======
@@ -92,24 +116,26 @@ else:
 ymin=-np.pi/2.0
 ymax= np.pi/2.0
 
+aspect=(xmax-xmin)/(ymax-ymin)
+
 #======================================================================
 # Grab the correct sub-array for plotting (ic is the current frame):
 global ic 
 ic = 0
 
 # Initiate a plotting window and plot relevant data into it:
-fig = plt.figure(1,figsize=[10,10])
+fig = plt.figure(1,figsize=[8,8])
 fig.subplots_adjust(bottom=0.2,left=0.2)
 ax = fig.add_subplot(111)
 im1 = ax.plot(x[ic],y[ic],'k-',lw=2)
 
 # Set plot title, legend and limits of the plot:
-ax.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
-ax.set_xlabel(labelx, fontsize=30)
-ax.set_ylabel('$\\phi$', fontsize=30)
-ax.tick_params(length=10, width=3)
+ax.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=24)
+ax.set_xlabel(labelx, fontsize=24)
+ax.set_ylabel('$\\phi$', fontsize=24)
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
+ax.set_aspect(aspect)
 
 def on_press(event):
   # Routine to deal with re-plotting the window on keypress. 
@@ -129,12 +155,12 @@ def on_press(event):
     axes.plot(x[ic],y[ic],'k-',lw=2)
 
     # Set the title, legend and plot limits:
-    axes.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
-    axes.set_xlabel(labelx, fontsize=30)
-    axes.set_ylabel('$\\phi$', fontsize=30)
-    axes.tick_params(length=10, width=3)
+    axes.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=24)
+    axes.set_xlabel(labelx, fontsize=24)
+    axes.set_ylabel('$\\phi$', fontsize=24)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
+    axes.set_aspect(aspect)
     plt.draw()
 
   if event.key=='-':
@@ -150,12 +176,12 @@ def on_press(event):
     axes.plot(x[ic],y[ic],'k-',lw=2)
 
     # Set the title, legend and plot limits:
-    axes.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
-    axes.set_xlabel(labelx, fontsize=30)
-    axes.set_ylabel('$\\phi$', fontsize=30)
-    axes.tick_params(length=10, width=3)
+    axes.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=24)
+    axes.set_xlabel(labelx, fontsize=24)
+    axes.set_ylabel('$\\phi$', fontsize=24)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
+    axes.set_aspect(aspect)
 
     # Finally redraw the plot:
     plt.draw()

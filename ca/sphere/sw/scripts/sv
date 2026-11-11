@@ -6,16 +6,40 @@
 #=====perform the various generic imports========
 import warnings
 import numpy as np
+import matplotlib.patches as mpatches
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as clrs
 # Set default plot save resolution to a large value:
 mpl.rcParams['savefig.dpi'] = 200
-# Set label size:
-mpl.rcParams['xtick.labelsize'] = 30
-mpl.rcParams['ytick.labelsize'] = 30
-mpl.rcParams['axes.linewidth'] = 3
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.artist import setp
+#import matplotlib.cm as cm
+from matplotlib import rcParams
+from matplotlib import rc
+rcParams.update({'figure.autolayout': True})
 warnings.simplefilter("ignore",DeprecationWarning)
+
+# Ensure latex fonts throughout:
+rc('font', **{'family': 'Times New Roman'})
+rc('text', usetex=True)
+
+# set tick label size:
+label_size = 20
+mpl.rcParams['xtick.labelsize'] = label_size
+mpl.rcParams['ytick.labelsize'] = label_size
+# set x tick width and size:
+mpl.rcParams['xtick.major.size'] = 5
+mpl.rcParams['xtick.major.width'] = 2
+mpl.rcParams['xtick.minor.size'] = 3
+mpl.rcParams['xtick.minor.width'] = 1
+# set y tick width and size:
+mpl.rcParams['ytick.major.size'] = 5
+mpl.rcParams['ytick.major.width'] = 2
+mpl.rcParams['ytick.minor.size'] = 3
+mpl.rcParams['ytick.minor.width'] = 1
+# set axes width:
+mpl.rcParams['axes.linewidth'] = 2
 
 #========================================
 #=====----------Main code----------======
@@ -37,45 +61,49 @@ opt_in = input(' Option (default 2)? ')
 option = int(opt_in or 2)
 print()
 print(' Include balanced & imbalanced spectra (need to run ispectra first)')
-bal_in = input(' yes (y) or no (n) --- default y? ')
-bal = str(bal_in or 'y')
+bal_in = input(' yes (y) or no (n) --- default n? ')
+bal = str(bal_in or 'n')
 
 if option==1:
    file1='zspec.asc'
-   labely='$\log_{10}\,|\hat{\\zeta}|^2$'
+   labely='$\\log_{10}\\,|\\hat{\\zeta}|^2$'
+   yextent=6.0
    if bal=='y':
       file2='zbspec.asc'
       file3='zispec.asc'
       label1='${\\zeta}$'
-      label2='${\\zeta}_{\mathsf{b}}$'
-      label3='${\\zeta}_{\mathsf{i}}$'
+      label2='${\\zeta}_{\\mathsf{b}}$'
+      label3='${\\zeta}_{\\mathsf{i}}$'
 elif option==2:
    file1='dspec.asc'
-   labely='$\log_{10}\,|\hat{\\delta}|^2$'
+   labely='$\\log_{10}\\,|\\hat{\\delta}|^2$'
+   yextent=8.0
    if bal=='y':
       file2='dbspec.asc'
       file3='dispec.asc'
       label1='${\\delta}$'
-      label2='${\\delta}_{\mathsf{b}}$'
-      label3='${\\delta}_{\mathsf{i}}$'
+      label2='${\\delta}_{\\mathsf{b}}$'
+      label3='${\\delta}_{\\mathsf{i}}$'
 elif option==3:
    file1='gspec.asc'
-   labely='$\log_{10}\,|\hat{\\gamma}|^2$'
+   labely='$\\log_{10}\\,|\\hat{\\gamma}|^2$'
+   yextent=6.0
    if bal=='y':
       file2='gbspec.asc'
       file3='gispec.asc'
       label1='${\\gamma}$'
-      label2='${\\gamma}_{\mathsf{b}}$'
-      label3='${\\gamma}_{\mathsf{i}}$'
+      label2='${\\gamma}_{\\mathsf{b}}$'
+      label3='${\\gamma}_{\\mathsf{i}}$'
 else:
    file1='hspec.asc'
-   labely='$\log_{10}\,|\hat{h}|^2$'
+   labely='$\\log_{10}\\,|\\hat{h}|^2$'
+   yextent=12.0
    if bal=='y':
       file2='hbspec.asc'
       file3='hispec.asc'
       label1='${h}$'
-      label2='${h}_{\mathsf{b}}$'
-      label3='${h}_{\mathsf{i}}$'
+      label2='${h}_{\\mathsf{b}}$'
+      label3='${h}_{\\mathsf{i}}$'
 
 # Open input file(s):
 in_file1=open('spectra/'+file1,'r')
@@ -129,12 +157,10 @@ tim_eles = [i*(2*kmax+2)+j for i in frames for j in range(2)]
 shaped_data = np.delete(raw_data1,tim_eles)[0:(2*kmax+2)*nframes1].reshape((nframes1,kmax,2))
 k=np.zeros((nframes1,nx))
 s1=np.zeros((nframes1,nx))
-smin=1000.0
 smax=-1000.0
 for i in frames:
    k[i,:]=shaped_data[i].transpose()[0][0:nx]
    s1[i,:]=shaped_data[i].transpose()[1][0:nx]
-   smin=min(smin,np.amin(s1[i,:]))
    smax=max(smax,np.amax(s1[i,:]))
 
 if bal=='y':
@@ -144,7 +170,6 @@ if bal=='y':
    s2=np.zeros((nframes2,nx))
    for i in frames:
       s2[i,:]=shaped_data[i].transpose()[1][0:nx]
-      smin=min(smin,np.amin(s2[i,:]))
       smax=max(smax,np.amax(s2[i,:]))
    frames=range(0,nframes3)
    tim_eles = [i*(2*kmax+2)+j for i in frames for j in range(2)]
@@ -152,18 +177,18 @@ if bal=='y':
    s3=np.zeros((nframes3,nx))
    for i in frames:
       s3[i,:]=shaped_data[i].transpose()[1][0:nx]
-      smin=min(smin,np.amin(s3[i,:]))
       smax=max(smax,np.amax(s3[i,:]))
 
-smin=0.5*int(2.0*(smin+1000.0))-1000.0
 smax=0.5*int(2.0*(smax+1000.0)+1.0)-1000.0
 
 ymax_in = input(' Maximum log_10(spectrum) to plot (default '+str(smax)+')? ')
 ymax = float(ymax_in or smax)
 
-smin=smax-10.0
+smin=smax-yextent
 ymin_in = input(' Minimum log_10(spectrum) to plot (default '+str(smin)+')? ')
 ymin = float(ymin_in or smin)
+
+aspect=(xmax-xmin)/(ymax-ymin)
 
 print()
 
@@ -173,7 +198,7 @@ global ic
 ic = 0
 
 # Initiate a plotting window and plot relevant data into it:
-fig = plt.figure(1,figsize=[10,10])
+fig = plt.figure(1,figsize=[8,8])
 fig.subplots_adjust(bottom=0.2,left=0.2)
 ax = fig.add_subplot(111)
 if bal=='y':
@@ -185,12 +210,12 @@ else:
    im1 = ax.plot(k[ic],s1[ic],'k-',lw=2)
 
 # Set plot title, legend and limits of the plot:
-ax.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=30)
-ax.set_xlabel('$\log_{10}\,m$', fontsize=30)
-ax.set_ylabel(labely, fontsize=30)
-ax.tick_params(length=10, width=3)
+ax.set_title('$t =$'+str('%.2f'%time[ic]), fontsize=24)
+ax.set_xlabel('$\\log_{10}\\,m$', fontsize=24)
+ax.set_ylabel(labely, fontsize=24)
 ax.set_xlim(xmin,xmax)
 ax.set_ylim(ymin,ymax)
+ax.set_aspect(aspect)
 
 def on_press(event):
   # Routine to deal with re-plotting the window on keypress. 
@@ -216,12 +241,12 @@ def on_press(event):
       axes.plot(k[ic],s1[ic],'k-',lw=2)
 
     # Set the title, legend and plot limits:
-    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=30)
-    axes.set_xlabel('$\log_{10}\,m$', fontsize=30)
-    axes.set_ylabel(labely, fontsize=30)
-    axes.tick_params(length=10, width=3)
+    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=24)
+    axes.set_xlabel('$\\log_{10}\\,m$', fontsize=24)
+    axes.set_ylabel(labely, fontsize=24)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
+    axes.set_aspect(aspect)
     plt.draw()
 
   if event.key=='-':
@@ -243,12 +268,12 @@ def on_press(event):
       axes.plot(k[ic],s1[ic],'k-',lw=2)
 
     # Set the title, legend and plot limits:
-    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=30)
-    axes.set_xlabel('$\log_{10}\,m$', fontsize=30)
-    axes.set_ylabel(labely, fontsize=30)
-    axes.tick_params(length=10, width=3)
+    axes.set_title('Spectra at $t =$'+str('%.2f'%time[ic]), fontsize=24)
+    axes.set_xlabel('$\\log_{10}\\,m$', fontsize=24)
+    axes.set_ylabel(labely, fontsize=24)
     axes.set_xlim(xlim)  
     axes.set_ylim(ylim)
+    axes.set_aspect(aspect)
 
     # Finally redraw the plot:
     plt.draw()
