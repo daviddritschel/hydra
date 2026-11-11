@@ -625,7 +625,7 @@ call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(51,'(f9.2,1x,i5)') t,kmaxred
 do k=1,kmaxred
-  write(51,'(4(1x,f12.8))') alk(k),spec1(k),spec2(k)
+  write(51,'(3(1x,f12.8))') alk(k),spec1(k),spec2(k)
 enddo
 
 ! Divergence:
@@ -637,7 +637,7 @@ call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(52,'(f9.2,1x,i5)') t,kmaxred
 do k=1,kmaxred
-  write(52,'(4(1x,f12.8))') alk(k),spec1(k),spec2(k)
+  write(52,'(3(1x,f12.8))') alk(k),spec1(k),spec2(k)
 enddo
 
 ! Acceleration divergence:
@@ -649,7 +649,7 @@ call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(53,'(f9.2,1x,i5)') t,kmaxred
 do k=1,kmaxred
-  write(53,'(4(1x,f12.8))') alk(k),spec1(k),spec2(k)
+  write(53,'(3(1x,f12.8))') alk(k),spec1(k),spec2(k)
 enddo
 
 ! Dimensionless height anomaly:
@@ -665,7 +665,7 @@ call spec1d(wkp,spec2)
 spec2=log10(spmf*spec2+1.d-32)
 write(54,'(f9.2,1x,i5)') t,kmaxred
 do k=1,kmaxred
-  write(54,'(4(1x,f12.8))') alk(k),spec1(k),spec2(k)
+  write(54,'(3(1x,f12.8))') alk(k),spec1(k),spec2(k)
 enddo
 
 ! spmf: normalisation factor to take into account uneven sampling
