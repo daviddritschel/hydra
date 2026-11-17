@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+
+#=================================================================
+# Checks the form of the dimensionless height anomaly inversion
+# in terms of vertical modes in a 2-layer shallow-water system.
+
+# Writtem 30 October 2026 by D G Dritschel @ Kyoto
+#=================================================================
+
+import numpy as np
+
+#-----------------------------------------------------------------
+# Specify constants:
+print()
+q_in = input(' Enter rho_2/rho_1 < 1 (default: 0.6) ')
+denrat = float(q_in or 0.6)
+if abs(denrat-1.0) < 1.e-12:
+    print(' rho_2/rho_1 must be strictly < 1. ***Exiting***')
+    print()
+    exit(-1)
+
+print()
+print(' Without loss of generality, we take the total depth H_1+H_2 = 1.')
+print()
+q_in = input(' Enter the mean-depth ratio H_2/H_1 (default: 1.2) ')
+hrat = float(q_in or 1.2)
+h1 = 1.0/(1.0+hrat)
+h2 = h1*hrat
+
+# Mass ratio of layers:
+mubar = denrat*hrat
+
+print()
+print(' Without loss of generality, the polar Coriolis frequency f_p = 4*pi.')
+print()
+print(' We define the Rossby deformation wavenumber k_d through the relation')
+print(' k_d^2 = f_p^2*(H_1+H_2)/[g*(1-rho_2/rho_1)*H_1*H_2].')
+
+print()
+q_in = input(' Enter k_d (default: 8.0) ')
+kd = float(q_in or 8.0)
+
+# Nominal squared gravity-wave speeds, g*H_1 and g*H_2:
+fpole = 4.0*np.pi
+cfac = fpole**2/((1.0-denrat)*kd**2)
+csq1 = cfac*(1.0+1.0/hrat)
+csq2 = cfac*(1.0+hrat)
+
+# Calculate gravity g:
+g = csq1+csq2
+# This uses the fact that H_1+H_2 = 1.
+
+# Define vertical mode projection coefficients specifically for the
+# inversion of the height field from the definition of gamma;
+# *** NOTE *** these are needed only in the spherical case where
+# the height field is solved for in modes then returned to layers.
+
+# First "barotropic" mode (ensure v11 + v22 = 1 wlog):
+bet1 = 0.5*(hrat-1.0)+np.sqrt(0.25*(hrat+1.0)**2-(1.0-denrat)*hrat)
+v11 =  1.0/(1.0+bet1)
+v12 = bet1/(1.0+bet1)
+# Second "baroclinic" mode (ensure v22 = 1 wlog):
+v22 = 1.0
+v21 = -bet1/mubar
+# For a field F_j in layers j = 1 & 2, its projection on vertical mode 1
+# is F_1*v11 + F_2*v12, while for mode 2, it is F_1*v21 + F_2*v22.
+
+#print()
+#print(' The vertical layer -> mode matrix coefficients are')
+#print(' v_11 =',round(v11,8),'  v_12 =',round(v12,8))
+#print(' v_21 =',round(v21,8),'  v_22 =',round(v22,8))
+
+# Define corresponding vertical layer projection coefficients:
+#D = v11*v22-v12*v21
+#vt11 = v22/D
+#vt12 = -v12/D
+#vt22 = v11/D
+#vt21 = -v21/D
+
+#print()
+#print(' The vertical mode -> layer matrix coefficients are')
+#print(' vt_11 =',round(vt11,8),'  vt_12 =',round(vt12,8))
+#print(' vt_21 =',round(vt21,8),'  vt_22 =',round(vt22,8))
+
+# Coefficients multiplying the Laplacian in the inversion of \tilde{h}_j:
+D = v11*v22-v12*v21
+ctsq1 = (csq1*(v11+v12)*v22-csq2*(denrat*v11+v12)*v21)/D
+ctsq2 = (csq2*(denrat*v21+v22)*v11-csq1*(v21+v22)*v12)/D
+# These are needed only in the spherical case --- see note above.
+
+#print()
+#print(' The 1st mode deformation wavenumber is',f/np.sqrt(ctsq1))
+#print(' The 2st mode deformation wavenumber is',f/np.sqrt(ctsq2))
+
+# Open a file to store parameters needed for a contour advection simulation:
+ofile = open('ini_params.asc','w')
+ofile.write("{:.14f} {:.14f} {:.14f} {:.14f} \n".format(v11,v12,v21,v22))
+ofile.write("{:.14f} {:.14f} {:.14f} {:.14f} \n".format(h1,h2,denrat,g))
+ofile.write("{:.14f} {:.14f}  \n".format(ctsq1,ctsq2))
+ofile.close()
