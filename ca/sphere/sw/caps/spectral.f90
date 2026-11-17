@@ -606,7 +606,7 @@ do while (hnorm .gt. tolh)
   enddo
    !These are in semi-spectral space here in this iterative loop.  
   
-   !Invert [f^2-c^2*grad^2]h = gamma + beta*u - f*(zeta - f*h):
+   !Invert [grad^2-f^2/c^2*]h = (f*(zeta - f*h) - beta*u - gamma)/c^2:
   call helminv(wkb,hs,wkc)
    !hs: corrected height field (to be hh below)
    !wkc is not needed but contains d(hh)/dlat.

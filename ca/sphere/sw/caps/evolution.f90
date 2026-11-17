@@ -156,6 +156,7 @@ integer:: i
  !            and  qd = (1-F)*(qs-qc)
  !Here F & (1-F) are low & high pass filter functions (see spectral.f90)
 call reset
+ !Note, qc is obtained in reset by a call to con2grid.
 
  !Obtain full PV anomaly (qs) on the grid:
 call revfft(ng,nt,qs,trig,factors)
@@ -279,14 +280,17 @@ qs=qs+dt*sqs
  !Update divergence and acceleration divergence:
 dsi=ds
 gsi=gs
-nds=sds+dt4i*dsi
-ngs=sgs+dt4i*gsi
-sds=nds+sds            !2*N_tilde_delta
-sgs=ngs+sgs            !2*N_tilde_gamma
-gs=rdis*sds+sgs
-call simp(gs,sgs,ds)   ! ds is not used
-ds=sgs-dsi
-gs=rdis*sgs-sds-gsi
+nds=sds+dt4i*dsi       !N_delta^n + (4/dt)*delta^n
+ngs=sgs+dt4i*gsi       !N_gamma^n + (4/dt)*gamma^n
+sds=nds+sds            !2*N_delta + (4/dt)*delta^n
+sgs=ngs+sgs            !2*N_gamma + (4/dt)*gamma^n
+gs=rdis*sds+sgs        !Source for delta^n + delta^{n+1}
+call simp(gs,sgs,ds)   !sgs = delta^n + delta^{n+1}; ds is not used
+ds=sgs-dsi             !delta^{n+1} (first estimate)
+gs=rdis*sgs-sds-gsi    !gamma^{n+1} (first estimate)
+ !Above, subroutine simp invert R^2-G to obtain delta^{n+1}+delta^n,
+ !where R = 2/dt + D (= rdis in the code; here D is the longitudinal
+ !part of the hyperdiffusion) and G = c^2*Lap - f^2.
 
  !If there is PV forcing (fq), update its form:
 if (forcing) call pvforce
@@ -320,12 +324,15 @@ do iter=1,niter
   qs=qsi+dt2*sqs
 
    !Update divergence and acceleration divergence:
-  sds=nds+sds            !2*N_tilde_delta
-  sgs=ngs+sgs            !2*N_tilde_gamma
-  gs=rdis*sds+sgs        !rdis is the R operator
-  call simp(gs,sgs,ds)   !inverts R^2-G operator on gs; ds is not used
-  ds=sgs-dsi             !sgs here is 2*delta_bar
-  gs=rdis*sgs-sds-gsi    !Now ds and gs are at time level n+1
+  sds=nds+sds            !N_delta^{n+1} + N_delta^n + (4/dt)*delta^n
+  sgs=ngs+sgs            !N_gamma^{n+1} + N_gamma^n + (4/dt)*gamma^n
+  gs=rdis*sds+sgs        !Source for delta^n + delta^{n+1}
+  call simp(gs,sgs,ds)   !sgs = delta^n + delta^{n+1}; ds is not used
+  ds=sgs-dsi             !delta^{n+1}
+  gs=rdis*sgs-sds-gsi    !gamma^{n+1}
+   !Above, subroutine simp invert R^2-G to obtain delta^{n+1}+delta^n,
+   !where R = 2/dt + D (= rdis in the code; here D is the longitudinal
+   !part of the hyperdiffusion) and G = c^2*Lap - f^2.
 enddo
 
  !Apply latitudinal hyperviscous damping to qd, ds & gs:

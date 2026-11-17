@@ -20,6 +20,8 @@ hov: $(objects) $(fft_lib) post/hov.f90
 	$(f90) $(fft_lib) $(objects) post/hov.f90 -o hov $(flags)
 ortho: $(objects) post/ortho.f90
 	$(f90) parameters.o constants.o post/ortho.f90 -o ortho $(flags)
+ini_ortho: $(objects) post/ini_ortho.f90
+	$(f90) parameters.o constants.o post/ini_ortho.f90 -o ini_ortho $(flags)
 measure: $(objects) post/measure.f90
 	$(f90) parameters.o constants.o post/measure.f90 -o measure $(flags)
 jets: $(objects) post/jets.f90

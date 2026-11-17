@@ -22,6 +22,9 @@ topo: $(objects) $(sourcedir)/init/topo.f90
 rest: $(objects) $(sourcedir)/init/rest.f90
 	$(f90) parameters.o constants.o $(sourcedir)/init/rest.f90 -o rest $(flags)
 
+ellipole: $(objects) $(sourcedir)/init/ellipole.f90
+	$(f90) parameters.o constants.o $(sourcedir)/init/ellipole.f90 -o ellipole $(flags)
+
 dambreak: $(objects) $(sourcedir)/init/dambreak.f90
 	$(f90) parameters.o constants.o $(sourcedir)/init/dambreak.f90 -o dambreak $(flags)
 
