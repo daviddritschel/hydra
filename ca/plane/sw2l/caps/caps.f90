@@ -177,6 +177,7 @@ qjump=(max(maxval(q1),maxval(q2))-min(minval(q1),minval(q2)))/dble(ncont)
  !Initially there are no contours (they are built from the gridded PV):
 nq=0
 nptq=0
+jl2q=0 !Used in congen initially; must be zero to start
 
 !--------------------------------------
  !Open all plain text diagnostic files:

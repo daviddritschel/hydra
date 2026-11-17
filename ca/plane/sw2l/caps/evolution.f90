@@ -83,7 +83,7 @@ do while (t .le. tsim)
 
   ! Advect flow from time t to t + dt:
   call advance(ggen)
-  
+
 enddo
 !End of time loop
 !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
