@@ -197,11 +197,12 @@ implicit none
 
  !Local parameters and variables:
 
-double precision,parameter:: tole=1.d-10
+double precision,parameter:: tole=1.d-14
  !tole: relative energy norm error in successive iterates when finding
  !      d, g, h, u & v from q (for j = 1 & 2). The energy norm is
  !      <du^2+dv^2+c^2*dh^2> where <:> means a horizontal domain average
  !      and (du,dv,dh) is the difference from the previous guess.
+ !      The square root of the norm is used.
 
  !rlx:  relaxation parameter to help convergence (rlx = 1 does not work):
 double precision,parameter:: rlx=0.5d0, rlxc=one-rlx
@@ -247,7 +248,7 @@ vvpre=zero
  !Iteratively solve for h, u & v (initial guess for d = g = 0):
 
  !Energy norm error (must be > tole to start):
-enorm=f12
+enorm=one
 do while (enorm .gt. tole)
    !Correct average PV by enforcing zero average vorticity:
   wkc=one+hh
@@ -309,7 +310,7 @@ do while (enorm .gt. tole)
    !Compute relative error (measured by the energy norm):
   wka=(uu-uupre)**2+(vv-vvpre)**2+csq*(hh-hhpre)**2
   wkb=uu**2+vv**2+csq*hh**2
-  enorm=average(wka)/(average(wkb)+small)
+  enorm=sqrt(average(wka)/(average(wkb)+small))
    !Small = 1.d-12 is added to avoid dividing by zero for a rest state
 
   if (enorm > one) then
@@ -336,7 +337,7 @@ enddo
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
  !Energy norm error (must be > tole to start):
-enorm=f12
+enorm=one
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 do while (enorm .gt. tole)
 
@@ -418,7 +419,7 @@ do while (enorm .gt. tole)
    !Compute relative error (measured by the energy norm):
   wka=(uu-uupre)**2+(vv-vvpre)**2+csq*(hh-hhpre)**2
   wkb=uu**2+vv**2+csq*hh**2
-  enorm=average(wka)/(average(wkb)+small)
+  enorm=sqrt(average(wka)/(average(wkb)+small))
    !Small = 1.d-12 is added to avoid dividing by zero for a rest state
 
   if (enorm > one) then

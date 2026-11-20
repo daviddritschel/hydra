@@ -524,8 +524,8 @@ double precision:: hh(ng,nt),uu(ng,nt),vv(ng,nt) !Physical
 double precision:: qq(ng,nt),zz(ng,nt)           !Physical
 
  !Local variables:
-double precision,parameter:: tolh=1.d-9
- !tolh: relative error in successive iterates when finding height field
+double precision,parameter:: tolh=1.d-14
+ !tolh: relative rms error in successive iterates when finding height field
 double precision,parameter:: wgt=0.5d0, wgtc=1.d0-wgt
  !wgt: relaxation parameter used in the height iteration below
 
@@ -577,7 +577,7 @@ htot=one+hh
  !Iteratively solve for hh, uu & vv:
 
  !Energy norm error (must be > tolh to start):
-hnorm=f12
+hnorm=one
 do while (hnorm .gt. tolh)
    !Correct average PV by enforcing zero average vorticity:
   wka=qq*htot
@@ -615,12 +615,13 @@ do while (hnorm .gt. tolh)
   wka=hs
   call revfft(ng,nt,wka,trig,factors) 
 
-   !Compute rms error in hh and re-assign hh & htot:
+   !Compute relative rms error in hh and re-assign hh & htot:
+  wkb=hh**2
   wkc=(hh-wka)**2
    !Employ relaxation to improve convergence:
   hh=wgt*wka+wgtc*hh
   htot=one+hh
-  hnorm=sqrt(average(wkc))
+  hnorm=sqrt(average(wkc)/average(wkb))
 enddo
  !Passing this, we have converged!
 
