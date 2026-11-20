@@ -705,14 +705,14 @@ double precision:: q1(ng,nt),q2(ng,nt)
 double precision:: z1(ng,nt),z2(ng,nt)
 
  !Local parameters and variables:
-double precision,parameter:: tole=1.d-12
+double precision,parameter:: tole=1.d-14
  !tole: relative energy norm error in successive iterates when finding
  !      hj, uj & vj from qj, dj & gj (for j = 1 & 2).  The energy norm is
  !      <du1^2+dv1^2+c_1^2*dh1^2> + (rho_2/rho_1)*(H_2/H_1)*
  !      <du2^2+dv2^2+c_2^2*dh2^2>
  !      where <:> means a horizontal domain average and (duj,dvj,dhj)
  !      is either the current guess for (uj,vj,hj) or the difference
- !      from the previous guess.
+ !      from the previous guess. The square root of the norm is used.
 
 double precision,parameter:: wgt=0.5d0, wgtc=1.d0-wgt
  !wgt: relaxation parameter used to speed convergence (wgt near 1 fails)
@@ -877,7 +877,7 @@ do while (enorm > tole)
   wka=(u1-u1o)**2+(v1-v1o)**2+csq1*(h1-h1o)**2 &
        +mubar*((u2-u2o)**2+(v2-v2o)**2+csq2*(h2-h2o)**2)
   wkb=u1**2+v1**2+csq1*h1**2+mubar*(u2**2+v2**2+csq2*h2**2)
-  enorm=average(wka)/(average(wkb)+small)
+  enorm=sqrt(average(wka)/(average(wkb)+small))
    !Small = 1.d-12 is added to avoid dividing by zero for a rest state
 
    !Employ relaxation to improve convergence:

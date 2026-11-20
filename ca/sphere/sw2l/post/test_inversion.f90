@@ -32,7 +32,7 @@ double precision:: ds1(ng,nt),ds2(ng,nt)
 double precision:: gs1(ng,nt),gs2(ng,nt)
 
  !Other:
-double precision:: wka(ng,nt)
+double precision:: wka(ng,nt),wkb(ng,nt)
 double precision:: t
 integer:: i,iopt
 
@@ -160,28 +160,36 @@ call main_invert(qs1,qs2,ds1,ds2,gs1,gs2,h1,h2,u1,u2,v1,v2,q1,q2,z1,z2)
  !      hj, uj, vj, qj and zj are in physical space.
 
 wka = abs(h1-h1i)
-write(*,*) ' Max abs error in h1 = ',maxval(wka)
+wkb = abs(h1i)
+write(*,*) ' Max abs rel error in h1 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(h2-h2i)
-write(*,*) ' Max abs error in h2 = ',maxval(wka)
+wkb = abs(h2i)
+write(*,*) ' Max abs rel error in h2 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(u1-u1i)
-write(*,*) ' Max abs error in u1 = ',maxval(wka)
+wkb = abs(u1i)
+write(*,*) ' Max abs rel error in u1 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(u2-u2i)
-write(*,*) ' Max abs error in u2 = ',maxval(wka)
+wkb = abs(u2i)
+write(*,*) ' Max abs rel error in u2 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(v1-v1i)
-write(*,*) ' Max abs error in v1 = ',maxval(wka)
+wkb = abs(v1i)
+write(*,*) ' Max abs rel error in v1 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(v2-v2i)
-write(*,*) ' Max abs error in v2 = ',maxval(wka)
+wkb = abs(v2i)
+write(*,*) ' Max abs rel error in v2 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(z1-z1i)
-write(*,*) ' Max abs error in z1 = ',maxval(wka)
+wkb = abs(z1i)
+write(*,*) ' Max abs rel error in z1 = ',maxval(wka)/maxval(wkb)
 
 wka = abs(z2-z2i)
-write(*,*) ' Max abs error in z2 = ',maxval(wka)
+wkb = abs(z2i)
+write(*,*) ' Max abs rel error in z2 = ',maxval(wka)/maxval(wkb)
 
  !Save h:
 open(11,file='hh_init.r8',form='unformatted', &

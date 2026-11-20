@@ -15,9 +15,6 @@ verify_zdg: $(objects) $(fft_lib) $(sourcedir)/post/verify_zdg.f90
 check_h: $(objects) $(fft_lib) $(sourcedir)/post/check_h.f90
 	$(f90) $(fft_lib) $(objects) $(sourcedir)/post/check_h.f90 -o check_h $(flags)
 
-check_inversion: $(objects) $(fft_lib) $(sourcedir)/post/check_inversion.f90
-	$(f90) $(fft_lib) $(objects) $(sourcedir)/post/check_inversion.f90 -o check_inversion $(flags)
-
 test_inversion: $(objects) $(fft_lib) $(sourcedir)/post/test_inversion.f90
 	$(f90) $(fft_lib) $(objects) $(sourcedir)/post/test_inversion.f90 -o test_inversion $(flags)
 

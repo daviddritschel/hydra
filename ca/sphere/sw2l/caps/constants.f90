@@ -44,7 +44,7 @@ double precision,parameter:: zero=0.d0,  one=1.d0, two=2.d0,  three=3.d0
 double precision,parameter:: four=4.d0, five=5.d0, six=6.d0, twelve=12.d0
 double precision,parameter:: f12=one/two,  f13=one/three,  f23=two/three
 double precision,parameter:: f14=one/four, f32=three/two,  f43=four/three
-double precision,parameter:: f53=five/three, f56=five/six, f74=7.d0/four
+double precision,parameter:: f56=five/six, f74=7.d0/four
 double precision,parameter:: f16=one/six, f112=one/twelve, f1112=11.d0/twelve
 double precision,parameter:: hpi=pi/two, twopi=two*pi, fourpi=four*pi
 double precision,parameter:: small=1.d-12, small3=small*small*small
